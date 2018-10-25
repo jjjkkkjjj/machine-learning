@@ -228,6 +228,10 @@ pip-selfcheck.json
 
 # ignore specified files
 .idea/
+
+misvm/*
+!.gitkeep
+
 2d-data/*
 !.gitkeep
 
