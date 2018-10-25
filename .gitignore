@@ -227,6 +227,7 @@ pip-selfcheck.json
 # End of https://www.gitignore.io/api/linux,python,pycharm
 
 # ignore specified files
+.idea/
 2d-data/*
 !.gitkeep
 
