@@ -1,5 +1,6 @@
 PROGNAME=$(basename $0)
 VERSION="1.0"
+#bash local2workstation.sh 4 -i
 #bash local2workstation.sh 14 -a 2d-data 2d-video -e .py ./
 usage() {
     echo "Usage: $PROGNAME [OPTIONS] -- OriginalFilePath1 OrigFilePath2 ..."
@@ -25,6 +26,7 @@ fi
 
 declare -i WS=2
 EXTENSION="FALSE"
+INIT=false
 declare -a EXTENSIONPATH=()
 declare -a ALLPATH=()
 
@@ -41,6 +43,10 @@ do
         '--version' )
             echo $VERSION
             exit 1
+            ;;
+        '-i'|'--init' )
+            INIT=true
+            break
             ;;
         '-e'|'--extension' )
             if [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
@@ -93,6 +99,18 @@ done
 
 WS=WS+10
 misvm_dir=/home/junkado/Desktop/ubuntu_project/python_ubuntu/machine-learning/
+
+if $INIT; then
+    # copy directory structure only
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --include "*/" --exclude "*" /home/junkado/Desktop/ubuntu_project/python_ubuntu/machine-learning kado@192.168.1.$WS:/home/kado/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/misvm/* kado@192.168.1.$WS:/home/kado/machine-learning/misvm/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/2d-data/* kado@192.168.1.$WS:/home/kado/machine-learning/2d-data/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/2d-video/*  kado@192.168.1.$WS:/home/kado/machine-learning/2d-video/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/*.py kado@192.168.1.$WS:/home/kado/machine-learning/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/Dockerfile* kado@192.168.1.$WS:/home/kado/machine-learning/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/*.sh kado@192.168.1.$WS:/home/kado/machine-learning/
+    exit 1
+fi
 
 if [ ! ${#param[@]} = 0 ]; then
     for file in ${param[@]}; do
