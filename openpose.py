@@ -176,7 +176,14 @@ class OpenPose:
                     continue
                 cv2.circle(img, (x, y), 5, (255, 255, 255), -1)
 
-        cv2.imshow("select id", img)
+        video = cv2.VideoCapture(self.__videopath)
+        ret, realimg = video.read()
+        video.release()
+
+        img = cv2.resize(img, (int(self.__height/2), int(self.__width/2)))
+        realimg = cv2.resize(realimg, (int(self.__height/2), int(self.__width/2)))
+
+        cv2.imshow("select id", cv2.hconcat([img, realimg]))
         button = cv2.waitKey()
         button = button - 48
         cv2.destroyAllWindows()
