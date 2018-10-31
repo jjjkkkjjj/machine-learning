@@ -95,19 +95,19 @@ misvm_dir=/home/junkado/Desktop/ubuntu_project/python_ubuntu/machine-learning/
 
 if [ ! ${#param[@]} = 0 ]; then
     for file in ${param[@]}; do
-        rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' kado@192.168.1.$WS:/home/kado/machine-learning/${file} ${misvm_dir}/${file}
+        rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' kado@192.168.1.$WS:/home/kado/machine-learning/${file}/ ${misvm_dir}/${file}/
     done
 fi
 
 if [ ! ${#EXTENSIONPATH[@]} = 0 ]; then
     for file in ${EXTENSIONPATH[@]}; do
-        rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' kado@192.168.1.$WS:/home/kado/machine-learning/${file} ${misvm_dir}/${file}
+        rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' kado@192.168.1.$WS:/home/kado/machine-learning/${file}/*${EXTENSION} ${misvm_dir}/${file}/
     done
 fi
 
 if [ ! ${#ALLPATH[@]} = 0 ]; then
     for file in ${ALLPATH[@]}; do
-        rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' kado@192.168.1.$WS:/home/kado/machine-learning/${file} ${misvm_dir}/${file}
+        rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' kado@192.168.1.$WS:/home/kado/machine-learning/${file}/ ${misvm_dir}/${file}/
     done
 fi
 

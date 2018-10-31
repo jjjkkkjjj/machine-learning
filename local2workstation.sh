@@ -1,7 +1,7 @@
 PROGNAME=$(basename $0)
 VERSION="1.0"
 #bash local2workstation.sh 4 -i
-#bash local2workstation.sh 14 -a 2d-data 2d-video -e .py ./
+#bash local2workstation.sh 14 -a 2d-data 2d-video -e .csv video/2018/
 usage() {
     echo "Usage: $PROGNAME [OPTIONS] -- OriginalFilePath1 OrigFilePath2 ..."
     echo "  This script is ~."
@@ -103,6 +103,7 @@ misvm_dir=/home/junkado/Desktop/ubuntu_project/python_ubuntu/machine-learning/
 if $INIT; then
     # copy directory structure only
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --include "*/" --exclude "*" /home/junkado/Desktop/ubuntu_project/python_ubuntu/machine-learning kado@192.168.1.$WS:/home/kado/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' /home/junkado/Desktop/ubuntu_project/python_ubuntu/MIL/MIL kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/misvm/* kado@192.168.1.$WS:/home/kado/machine-learning/misvm/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/2d-data/* kado@192.168.1.$WS:/home/kado/machine-learning/2d-data/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/2d-video/*  kado@192.168.1.$WS:/home/kado/machine-learning/2d-video/
@@ -120,10 +121,11 @@ fi
 
 if [ ! ${#EXTENSIONPATH[@]} = 0 ]; then
     for file in ${EXTENSIONPATH[@]}; do
-        rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}${file}/*${EXTENSION} kado@192.168.1.$WS:/home/kado/machine-learning/
+        rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}${file}/*${EXTENSION} kado@192.168.1.$WS:/home/kado/machine-learning/${file}/
     done
 fi
 
+#no need?
 if [ ! ${#ALLPATH[@]} = 0 ]; then
     for file in ${ALLPATH[@]}; do
         rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}${file} kado@192.168.1.$WS:/home/kado/machine-learning/
