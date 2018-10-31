@@ -18,8 +18,8 @@ import threading
 method = 'img'
 dir_name = 'img-misvm'
 kernel = 'rbf'
-gamma = 0.003
-C = 5000
+gamma = 0.0012
+C = 1000
 sample_num_per_label = 0
 experience = '2018'
 path = './result/{0}/{1}/g{2}c{3}'.format(experience, dir_name, gamma, C)
@@ -269,7 +269,7 @@ def read_data(notnantime=False, method='real', savemotiontemp=False):
         return bags, labels
 
 def my_scorer(estimator, x, y):
-    yPred = np.sign(estimator.predict(x))
+    yPred = np.sign(estimator.predict(x, instancePrediction=False))
     a = accuracy_score(y, yPred)
     return a
 
@@ -279,7 +279,7 @@ def main():# read hard and easy
     print('positive:{0}\nnegative:{1}'.format(np.sum(np.array(labels)==1), np.sum(np.array(labels)==-1)))
 
     print(np.sum(np.array([len(bag) for bag in bags]))) # instance number
-    exit()
+
     mkdir()
 
     if sample_num_per_label == 0:# all
@@ -315,7 +315,7 @@ def mkdir():
     import os
     if not os.path.isdir('{0}'.format(path)):
         os.makedirs('{0}'.format(path))
-        os.makedirs('{0}/nonzero_image'.format(path))
+        os.makedirs('{0}/func_max_image'.format(path))
         os.makedirs('{0}/func_plus'.format(path))
         os.makedirs('{0}/bag_video'.format(path))
         os.makedirs('{0}/leave-one-person-out'.format(path))
@@ -783,6 +783,32 @@ def result_leave_one_out(bags=None, labels=None):
         print('accuracy: {0}'.format(p * 100.0 / len(dirs)))
         print('accuracy: {0}'.format(p*100.0/len(dirs)), file=f)
 
+def gridsearch(savemotiontmp, params_grid, cv=2):
+    bags, labels = read_data(method=method, savemotiontemp=savemotiontmp)
+    print(len(bags))
+    classifier = misvm.miSVM(max_iters=250)
+
+    gscv = GridSearchCV(classifier, params_grid, cv=cv, scoring=my_scorer)
+    gscv.fit(bags, labels)
+    print(gscv.cv_results_)
+    print('\n\nbest score is')
+    print(gscv.best_params_)
+
+    best_g = gscv.best_params_['gamma']
+    if not os.path.isdir('result/{0}/{1}/g{2}'.format(experience, dir_name, best_g)):
+        os.makedirs('result/{0}/{1}/g{2}'.format(experience, dir_name, best_g))
+
+    with open('result/{0}/{1}/g{2}/gridsearch.txt'.format(experience, dir_name, best_g), 'w') as f:
+        print('{0}\n'.format(gscv.cv_results_), file=f)
+        print('best parameters', file=f)
+        print('{0}'.format(gscv.best_params_), file=f)
+    #text = '{0}\n'.format(len(bags))
+    #text_, K = tune(ini, fin, step, train_bags, test_bags)
+    #text += text_
+    #mkdir(text, K)
+    exit()
+
+
 def get_from_openpose():
     op = OpenPose()
     #op.get_from_openpose(videosdir='/home/junkado/Desktop/keio/hard/focusright', extension=".mp4")
@@ -794,8 +820,10 @@ def get_from_openpose():
     op.manual_videofiles(videopaths)
 
 if __name__ == '__main__':
+    #search_hyperparameter(savemotiontmp=True, ini=0.001, fin=0.005, step=0.0001)
+    gridsearch(savemotiontmp=False, params_grid=[
+        {'gamma': [0.0012], 'C': [0.1, 0.5, 1, 5, 10, 50, 100, 500, 1000, 5000, 10000], 'kernel': ['rbf']}])
     #main()
-    search_hyperparameter(savemotiontmp=True, ini=0.002, fin=0.004, step=0.0001)
     #check_identification_func_max()
     #cross_validation()
     #get_from_openpose()

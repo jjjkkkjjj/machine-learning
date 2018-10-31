@@ -21,8 +21,8 @@ dir_name = 'img-miles'
 kernel = 'rbf'
 lamb = 0.2
 mu = 0.7
-gamma = 0.0013
-C = 5000
+gamma = 0.0012
+C = 5000 # pointless
 sample_num_per_label = 0
 experience = '2018'
 path = './result/{0}/{1}/g{2}/mu{3}lamb{4}'.format(experience, dir_name, gamma, mu, lamb)
@@ -777,17 +777,22 @@ def result_leave_one_out(bags=None, labels=None):
         print('accuracy: {0}'.format(p * 100.0 / len(dirs)))
         print('accuracy: {0}'.format(p*100.0/len(dirs)), file=f)
 
-def gridsearch(savemotiontmp, params_grid):
+def gridsearch(savemotiontmp, params_grid, cv=2):
     bags, labels = read_data(method=method, savemotiontemp=savemotiontmp)
     print(len(bags))
     classifier = MILES()
 
-    gscv = GridSearchCV(classifier, params_grid, cv=2, scoring=my_scorer)
+    gscv = GridSearchCV(classifier, params_grid, cv=cv, scoring=my_scorer)
     gscv.fit(bags, labels)
     print(gscv.cv_results_)
     print('\n\nbest score is')
     print(gscv.best_params_)
-    with open('result/{0}/gridsearch.txt'.format(dir_name), 'w') as f:
+
+    best_g = gscv.best_params_['gamma']
+    if not os.path.isdir('result/{0}/{1}/g{2}'.format(experience, dir_name, best_g)):
+        os.makedirs('result/{0}/{1}/g{2}'.format(experience, dir_name, best_g))
+
+    with open('result/{0}/{1}/g{2}/gridsearch.txt'.format(experience, dir_name, best_g), 'w') as f:
         print('{0}\n'.format(gscv.cv_results_), file=f)
         print('best parameters', file=f)
         print('{0}'.format(gscv.best_params_), file=f)
@@ -800,8 +805,10 @@ def gridsearch(savemotiontmp, params_grid):
 
 if __name__ == '__main__':
     #main()
-    search_hyperparameter(savemotiontmp=False, ini=0.0009, fin=0.002, step=0.0001)
-    #gridsearch(savemotiontmp=False, params_grid=[{'gamma':[0.0013], 'mu':[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 'lamb':[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 'similarity':['rbf']}])
+    #search_hyperparameter(savemotiontmp=False, ini=0.005, fin=0.01, step=0.0001)
+    gridsearch(savemotiontmp=False, params_grid=[
+        {'gamma': [0.0012], 'mu': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+         'lamb': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 'similarity': ['rbf']}])
     #check_important_feature_frame()
     #cross_validation()
     #leave_one_put(check=False, threadnum=8)
