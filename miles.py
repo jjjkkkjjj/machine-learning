@@ -17,15 +17,15 @@ import threading
 import cv2
 
 method = 'img'
-dir_name = 'miles-img'
+dir_name = 'img-miles'
 kernel = 'rbf'
 lamb = 0.2
 mu = 0.7
 gamma = 0.0013
 C = 5000
 sample_num_per_label = 0
-experience = '2017'
-path = './result/{0}/{1}/g{2}mu{3}lamb{4}'.format(experience, dir_name, gamma, mu, lamb)
+experience = '2018'
+path = './result/{0}/{1}/g{2}/mu{3}lamb{4}'.format(experience, dir_name, gamma, mu, lamb)
 dicimate = 4
 person = []
 
@@ -48,18 +48,18 @@ def read_data(notnantime=False, method='real', savemotiontemp=False):
     with open('2d-data/video_dir_info.txt', 'rt') as f:
         videosdir = f.readline()
 
-    with open('video/{0}/hard25-video.csv'.format(experience), 'r') as f:
+    with open('video/{0}/hard-video.csv'.format(experience), 'r') as f:
         hard_csvfiles_ = f.read().split('\n')[:-1]
 
-    with open('video/{0}/easy25-video.csv'.format(experience), 'r') as f:
+    with open('video/{0}/easy-video.csv'.format(experience), 'r') as f:
         easy_csvfiles_ = f.read().split('\n')[:-1]
 
-    hard_csvfiles = ['C' + file.split(',')[0] + '.MP4' for file in hard_csvfiles_]
-    #hard_csvfiles = ['C' + file.split(',')[0] + '.mp4' for file in hard_csvfiles_]
+    #hard_csvfiles = ['C' + file.split(',')[0] + '.MP4' for file in hard_csvfiles_]
+    hard_csvfiles = [file.split(',')[0] + '.mp4' for file in hard_csvfiles_]
     hard_hand = [file.split(',')[1][0] for file in hard_csvfiles_]
     hard_person = [file.split(',')[1][1] for file in hard_csvfiles_]
-    easy_csvfiles = ['C' + file.split(',')[0] + '.MP4' for file in easy_csvfiles_]
-    #easy_csvfiles = ['C' + file.split(',')[0] + '.mp4' for file in easy_csvfiles_]
+    #easy_csvfiles = ['C' + file.split(',')[0] + '.MP4' for file in easy_csvfiles_]
+    easy_csvfiles = [file.split(',')[0] + '.mp4' for file in easy_csvfiles_]
     easy_hand = [file.split(',')[1][0] for file in easy_csvfiles_]
     easy_person = [file.split(',')[1][1] for file in easy_csvfiles_]
 
@@ -283,13 +283,7 @@ def main():# read hard and easy
 
     print(np.sum(np.array([len(bag) for bag in bags]))) # instance number
     #exit()
-    #mkdir()
-    import os
-    if not os.path.isdir(path):
-        os.makedirs('{0}'.format(path))
-        os.makedirs('{0}/nonzero_image'.format(path))
-        os.makedirs('{0}/func_plus'.format(path))
-        os.makedirs('{0}/bag_video'.format(path))
+    mkdir()
 
     if sample_num_per_label == 0:# all
         indexes = [i for i in range(len(bags))]
@@ -320,16 +314,16 @@ def main():# read hard and easy
         print("Accuracy: {0}".format(np.average(labels == np.sign(predictions)) * 100), file=f)
         print(indexes, file=f)
 
-def mkdir(text, K):
+def mkdir():
     import os
     if not os.path.isdir('{0}'.format(path)):
         os.makedirs('{0}'.format(path))
         os.makedirs('{0}/nonzero_image'.format(path))
         os.makedirs('{0}/func_plus'.format(path))
         os.makedirs('{0}/bag_video'.format(path))
-        with open('{0}/parameter.txt'.format(path), 'w') as f:
-            f.write(text)
-            print(K, file=f)
+        os.makedirs('{0}/leave-one-person-out'.format(path))
+        os.makedirs('{0}/leave-one-person-out_result'.format(path))
+
 
 
 def check_important_feature_frame():
@@ -397,10 +391,13 @@ def search_hyperparameter(savemotiontmp, ini, fin, step):
     text += text_
 
     gamma = best_g
-    path = './result/{0}/g{1}mu{2}lamb{3}'.format(dir_name, gamma, mu, lamb)
-    mkdir(text, K)
-
-    return
+    path = './result/{0}/{1}/g{2}/'.format(experience, dir_name, gamma)
+    if not os.path.isdir(path):
+        os.makedirs('{0}'.format(path))
+    with open('{0}/parameter.txt'.format(path), 'w') as f:
+        f.write(text)
+        print(K, file=f)
+    exit()
     """
     clf = MILES.MILES(max_iters=100, verbose=True)
     tuned_parameters = [
@@ -576,18 +573,7 @@ def leave_one_person_out(threadnum=8, makenewfile=False):
     personlist = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'l1', 'l2', 'l3', 'l4']
 
     if makenewfile is not None:
-        import os
-        if not os.path.isdir('{0}'.format(path)):
-            os.makedirs('{0}'.format(path))
-            os.makedirs('{0}/nonzero_image'.format(path))
-            os.makedirs('{0}/func_plus'.format(path))
-            os.makedirs('{0}/bag_video'.format(path))
-
-    import os
-    if not os.path.isdir(path + '/leave-one-person-out'):
-        if not os.path.isdir(path):
-            os.mkdir(path)
-        os.mkdir(path + '/leave-one-person-out')
+        mkdir()
 
     for cnt, i in enumerate(range(0, len(personlist), threadnum)):
         threadlist = []
@@ -640,8 +626,7 @@ def result_leave_one_person_out(bags=None, labels=None):
 
     personlist = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'l1', 'l2', 'l3', 'l4']
 
-    if not os.path.exists('{0}/leave-one-person-out_result'.format(path)):
-        os.mkdir('{0}/leave-one-person-out_result'.format(path))
+    mkdir()
 
     dirs = sorted(glob.glob(path + '/leave-one-person-out/*/'))
     #from sklearn.metrics import confusion_matrix
@@ -815,8 +800,8 @@ def gridsearch(savemotiontmp, params_grid):
 
 if __name__ == '__main__':
     #main()
-    #search_hyperparameter(savemotiontmp=False, ini=0.0009, fin=0.002, step=0.0001)
-    gridsearch(savemotiontmp=False, params_grid=[{'gamma':[0.0013], 'mu':[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 'lamb':[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 'similarity':['rbf']}])
+    search_hyperparameter(savemotiontmp=False, ini=0.0009, fin=0.002, step=0.0001)
+    #gridsearch(savemotiontmp=False, params_grid=[{'gamma':[0.0013], 'mu':[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 'lamb':[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 'similarity':['rbf']}])
     #check_important_feature_frame()
     #cross_validation()
     #leave_one_put(check=False, threadnum=8)
@@ -827,7 +812,7 @@ if __name__ == '__main__':
     L = [0.23, 0.24]
     for l in L:
         lamb = l
-        path = './result/{0}/g{1}mu{2}lamb{3}'.format(dir_name, gamma, mu, lamb)
+        path = './result/{0}/{1}/g{2}/mu{3}lamb{4}'.format(experience, dir_name, gamma, mu, lamb)
         leave_one_person_out(makenewfile=True)
     """
     #result_leave_one_out()
