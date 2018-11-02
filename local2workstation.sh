@@ -102,9 +102,9 @@ misvm_dir=/home/junkado/Desktop/ubuntu_project/python_ubuntu/machine-learning/
 
 if $INIT; then
     # copy directory structure only
-    scp ./setup-ssh.sh ~/.ssh/id_rsa.pub kado@192.168.1.$WS:~/
-    ssh kado@192.168.1.$WS bash setup-ssh.sh
-    ssh kado@192.168.1.$WS rm setup-ssh.sh
+    scp ./setup-server.sh ~/.ssh/id_rsa.pub kado@192.168.1.$WS:~/
+    ssh kado@192.168.1.$WS bash setup-server.sh
+    ssh kado@192.168.1.$WS rm setup-server.sh
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --include "*/" --exclude "*" /home/junkado/Desktop/ubuntu_project/python_ubuntu/machine-learning kado@192.168.1.$WS:/home/kado/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' /home/junkado/Desktop/ubuntu_project/python_ubuntu/MIL/MIL kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/misvm/* kado@192.168.1.$WS:/home/kado/machine-learning/misvm/

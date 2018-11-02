@@ -9,4 +9,11 @@ cat id_rsa.pub >> authorized_keys
 chmod 600 authorized_keys
 rm -fv id_rsa.pub
 
-echo "ended setup"
+echo "ended setup ssh"
+
+echo ""
+echo ""
+echo "init docker build"
+cd
+cd machine-learning
+bash docker-build.sh mil DockerfileMiles
