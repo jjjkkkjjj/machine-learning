@@ -15,6 +15,7 @@ def tune(gamma_ini, gamma_fin, step, train_bags, test_bags):
     step_num = int((gamma_fin - gamma_ini) / step) + 1
     K_list = []
     var_list = []
+    prevVar = -9999
     for i in range(step_num):
         g = gamma_ini + step*i
         K = kernel_rbf(gamma=g, x=X, y=Y)
@@ -23,6 +24,10 @@ def tune(gamma_ini, gamma_fin, step, train_bags, test_bags):
         text += "gamma:{0} --> variance:{1}\n".format(g, var)
         var_list.append(var)
         K_list.append(K)
+        if prevVar > var:
+            break
+        else:
+            prevVar = var
         #print(K)
     best_index = np.argmax(np.array(var_list))
     best_g = gamma_ini + step * best_index
