@@ -12,20 +12,19 @@ dir_name = 'img-misvm-focusEasy'
 kernel = 'rbf'
 gamma = 0.0012
 C = 1000
-sample_num_per_label = 0
 experience = '2018'
+positiveCsvFileName='easy-video.csv'
+negativeCsvFileName='hard-video.csv'
 path = './result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, C)
 dicimate = 4
-person = []
 
 mil = MIL(method=method, experience=experience, dirName=dir_name, estimatorName='misvm')
-mil.setData(positiveCsvFileName='easy-video.csv', negativeCsvFileName='hard-video.csv',
-            saveMotionTmplate=False, dicimate=4, videoExtension='mp4', csvExtension='csv')
+mil.setData(positiveCsvFileName=positiveCsvFileName, negativeCsvFileName=negativeCsvFileName,
+            saveMotionTmplate=False, dicimate=dicimate, videoExtension='mp4', csvExtension='csv')
 
 def main():# read hard and easy
     estimator = misvm.miSVM(kernel=kernel, gamma=gamma, C=C, verbose=True, max_iters=100)
     mil.train(estimator=estimator, resultSuperDirPath=path)
-
 
 def check_identification_func_max():
     bags, labels, csvnamelist = mil.bags, mil.labels, mil.csvFilePaths
@@ -194,11 +193,23 @@ if __name__ == '__main__':
     #leave_one_out(n_jobs=10)
     #leave_one_person_out(n_jobs=10)
 
+    # use thread
+    estimators = []
+    pathes = []
+    CC = [1000, 3000, 3500, 4000, 5000]
+    for cc in CC:
+        estimators.append(misvm.miSVM(kernel=kernel, gamma=gamma, C=cc, verbose=True, max_iters=100))
+        pathes.append('./result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, cc))
+    mil.pluralParametersTrain(estimators, pathes=pathes, n_jobs=10)
+
+    """
+    # no thread
     CC = [1000, 3000, 3500, 4000, 5000]
     for cc in CC:
         path = './result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, cc)
         C = cc
         #leave_one_person_out()
         #result_leave_one_person_out()
-        main()
         check_identification_func_max()
+    """
+

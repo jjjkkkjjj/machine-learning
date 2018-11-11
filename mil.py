@@ -472,7 +472,6 @@ class MIL:
                 print('accuracies for train\n{0}'.format(trainAccuracies), file=f)
             print(self.info, file=f)
 
-
     def read_loo(self, resultSuperDirPath, reload=False):
         estimatorPaths = sorted(glob.glob(resultSuperDirPath + '/leave-one-out/*.pkl.cmp'))
         estimators = []
@@ -595,3 +594,36 @@ class MIL:
             print('accuracy: {0}'.format(float(p) * 100/len(self.labels)))
 
         return estimators
+
+
+    """
+    example: pluralParametersImplement(estimators, pathes,
+                                        extraArgs=[{}, {sampleNumPerLabel:3}, {}], n_jobs=8)
+    """
+    def pluralParametersTrain(self, estimators, pathes, extraArgs=None, n_jobs=8): # implementations
+        if extraArgs is None:
+            extraArgs = [{} for i in range(len(pathes))]
+        for index in range(0, len(estimators), n_jobs):
+            threadList = []
+
+            def job(threadIndex):
+                estimator_ = estimators[threadIndex]
+                path = pathes[threadIndex]
+                args = extraArgs[threadIndex]
+                self.train(estimator=estimator_, resultSuperDirPath=path, **args)
+
+
+            lastThreadIndex = index + n_jobs
+            if lastThreadIndex > len(estimators):
+                lastThreadIndex = len(estimators)
+
+            for threadIndex in range(index, lastThreadIndex):
+                thread = threading.Thread(target=job, name=str(threadIndex), args=([threadIndex]))
+                thread.daemon = True
+                thread.start()
+                threadList.append(thread)
+
+            for thread_ in threadList:
+                thread_.join()
+
+            del threadList

@@ -13,15 +13,15 @@ lamb = 0.55
 mu = 0.5
 gamma = 0.0012
 C = 5000 # pointless
-sample_num_per_label = 0
 experience = '2018'
+positiveCsvFileName='easy-video.csv'
+negativeCsvFileName='hard-video.csv'
 path = './result/{0}/{1}/g{2}/mu{3}lamb{4}'.format(experience, dir_name, gamma, mu, lamb)
 dicimate = 4
-person = []
 
 mil = MIL(method=method, experience=experience, dirName=dir_name, estimatorName='MILES')
-mil.setData(positiveCsvFileName='easy-video.csv', negativeCsvFileName='hard-video.csv',
-            saveMotionTmplate=False, dicimate=4, videoExtension='mp4', csvExtension='csv')
+mil.setData(positiveCsvFileName=positiveCsvFileName, negativeCsvFileName=negativeCsvFileName,
+            saveMotionTmplate=False, dicimate=dicimate, videoExtension='mp4', csvExtension='csv')
 
 def main():# read hard and easy
     estimator = MILES(lamb=lamb, mu=mu, similarity=kernel, gamma=gamma, C=C, verbose=True)
@@ -192,25 +192,35 @@ def plot_confusion_matrix(cm,
     plt.show()
 
 if __name__ == '__main__':
-    main()
+    #main()
     #search_hyperparameter(savemotiontmp=False, ini=0.005, fin=0.01, step=0.0001)
     #gridsearch(savemotiontmp=False, params_grid=[
     #    {'gamma': [0.0012], 'mu': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
     #     'lamb': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 'similarity': ['rbf']}])
-    check_important_feature_frame()
+    #check_important_feature_frame()
     #cross_validation()
     #leave_one_out(n_jobs=10)
-    leave_one_person_out(n_jobs=10)
+    #leave_one_person_out(n_jobs=10)
 
-    # i dont need 'global'
+    # no need 'global'
+
+    # use thread
+    estimators = []
+    pathes = []
+    L = [0.5, 0.55, 0.6, 0.65, 0.7]
+    for l in L:
+        lamb = l
+        estimators.append(MILES(lamb=lamb, mu=mu, similarity=kernel, gamma=gamma, C=C, verbose=True))
+        pathes.append('./result/{0}/{1}/g{2}/mu{3}lamb{4}'.format(experience, dir_name, gamma, mu, lamb))
+    mil.pluralParametersTrain(estimators, pathes=pathes, n_jobs=10)
+
+    # no thread
     """
     L = [0.5, 0.55 ,0.6, 0.65, 0.7]
     for l in L:
         lamb = l
         path = './result/{0}/{1}/g{2}/mu{3}lamb{4}'.format(experience, dir_name, gamma, mu, lamb)
-        leave_one_person_out(n_jobs=10)
+        #leave_one_person_out(n_jobs=10)
         #main()
-        #check_important_feature_frame()
+        check_important_feature_frame()
     """
-    #result_leave_one_out()
-    #pythonresult_leave_one_person_out()
