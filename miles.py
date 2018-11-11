@@ -31,6 +31,21 @@ def main():# read hard and easy
 def check_important_feature_frame():
     bags, labels, csvnamelist = mil.bags, mil.labels, mil.csvFilePaths
 
+    # sort [p,p,p,p,n,n,n,n,n,n,n,n,n]
+    Pbags_indices_of_bags = np.where(np.array(labels) == 1)[0]  # .shape[0] means l+
+    Nbags_indices_of_bags = np.where(np.array(labels) == -1)[0]  # .shape means l-
+
+    newbags, newlabels, newcsvnamelist = [], [], []
+    for indexPositive in Pbags_indices_of_bags:
+        newbags.append(bags[indexPositive])
+        newlabels.append(1)
+        newcsvnamelist.append(csvnamelist[indexPositive])
+    for indexNegative in Nbags_indices_of_bags:
+        newbags.append(bags[indexNegative])
+        newlabels.append(-1)
+        newcsvnamelist.append(csvnamelist[indexNegative])
+    newlabels = np.array(newlabels)
+
     #indexes = [i for i in range(len(bags))]
     #bags = [bags[index] for index in indexes]
     #labels = [labels[index] for index in indexes]
@@ -46,12 +61,12 @@ def check_important_feature_frame():
     plt.show()
     """
     ini = 0
-    for bag_i, bag in enumerate(bags):
+    for bag_i, bag in enumerate(newbags):
         fin = ini + len(bag)
 
         weights = classifier.w_[ini:fin]
         indices_nonzeroFrame = np.where(np.abs(weights) > classifier.tol)[0] * dicimate
-        with open(csvnamelist[bag_i], 'r') as f:
+        with open(newcsvnamelist[bag_i], 'r') as f:
             videopath = f.readline().split(',')[0]
 
             videoname = videopath.split('/')[-1][:-4]
@@ -59,7 +74,7 @@ def check_important_feature_frame():
 
         print("nonzero frames: {0}".format(indices_nonzeroFrame))
 
-        with open(csvnamelist[bag_i], 'r') as f:
+        with open(newcsvnamelist[bag_i], 'r') as f:
             video_path = f.readline().split(',')[0]
 
             video = cv2.VideoCapture(video_path)
