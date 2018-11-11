@@ -192,14 +192,13 @@ if __name__ == '__main__':
     #cross_validation()
     #get_from_openpose()
     #leave_one_out(n_jobs=10)
-    leave_one_person_out(n_jobs=10)
-    """
-    CC = [2500, 3000, 3500, 4000, 4500]
+    #leave_one_person_out(n_jobs=10)
+
+    CC = [1000, 3000, 3500, 4000, 5000]
     for cc in CC:
         path = './result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, cc)
         C = cc
         #leave_one_person_out()
         #result_leave_one_person_out()
-        #main()
+        main()
         check_identification_func_max()
-    """

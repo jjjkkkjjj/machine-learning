@@ -465,13 +465,13 @@ class MIL:
         with open(os.path.join(resultSuperDirPath, 'leave-one-out.txt'), 'w') as f:
             print('correct labels are\n{0}'.format(corresctLabels), file=f)
             print('predicted labels are\n{0}'.format(predictedLabels), file=f)
+            print('Accuracy: {0}'.format(acc))
             print('Accuracy: {0}'.format(acc, file=f))
             if trainAcc:
                 print('accuracies for train\n{0}'.format(trainAccuracies))
                 print('accuracies for train\n{0}'.format(trainAccuracies), file=f)
             print(self.info, file=f)
 
-        print('Accuracy: {0}'.format(acc))
 
     def read_loo(self, resultSuperDirPath, reload=False):
         estimatorPaths = sorted(glob.glob(resultSuperDirPath + '/leave-one-out/*.pkl.cmp'))
@@ -569,8 +569,8 @@ class MIL:
             print('Accuracy: {0}'.format(acc))
             if trainAcc:
                 print('accuracies for train\n{0}'.format(
-                    {personList[i]: trainAccuracy for i, trainAccuracy in trainAccuracies.items()}), file=f)
-                print('accuracies for train\n{0}'.format({personList[i]: trainAccuracy for i, trainAccuracy in trainAccuracies.items()}))
+                    {personList[int(i)]: trainAccuracy for i, trainAccuracy in trainAccuracies.items()}), file=f)
+                print('accuracies for train\n{0}'.format({personList[int(i)]: trainAccuracy for i, trainAccuracy in trainAccuracies.items()}))
 
             print(self.info, file=f)
 
