@@ -7,15 +7,15 @@ from mil import MIL
 import cv2
 
 method = 'img'
-dir_name = 'img-miles-focusEasy'
+dir_name = 'img-miles'
 kernel = 'rbf'
 lamb = 0.55
 mu = 0.5
 gamma = 0.0012
 C = 5000 # pointless
 experience = '2018'
-positiveCsvFileName='easy-video.csv'
-negativeCsvFileName='hard-video.csv'
+positiveCsvFileName='hard-video.csv'
+negativeCsvFileName='easy-video.csv'
 path = './result/{0}/{1}/g{2}/mu{3}lamb{4}'.format(experience, dir_name, gamma, mu, lamb)
 dicimate = 4
 
@@ -80,10 +80,15 @@ def check_important_feature_frame():
             video = cv2.VideoCapture(video_path)
 
             for frame in indices_nonzeroFrame:
-                video.set(cv2.CAP_PROP_POS_FRAMES, frame)
+                video.set(cv2.CAP_PROP_POS_FRAMES, frame - 1)
 
                 ret, img = video.read()
-
+                # this may occur due to dicimate
+                # example: len(bag)=61, dicimate=4, videoframe=240
+                # in other words, if ret is False, last frame should be extracted
+                if not ret:
+                    video.set(cv2.CAP_PROP_POS_FRAMES, int(video.get(cv2.CAP_PROP_FRAME_COUNT)) - 2)
+                    ret, img = video.read()
                 videoname = path.split('/')[-1][:-4]
 
                 cv2.imwrite("{0}/nonzero_image/{1}_{2}.jpg".format(path, videoname, weights[int(frame/dicimate)]), img)
@@ -205,6 +210,7 @@ if __name__ == '__main__':
     # no need 'global'
 
     # use thread
+    """
     estimators = []
     pathes = []
     L = [0.5, 0.55, 0.6, 0.65, 0.7]
@@ -215,6 +221,8 @@ if __name__ == '__main__':
     mil.pluralParametersTrain(estimators, pathes=pathes, n_jobs=10)
 
     # no thread
+    """
+    check_important_feature_frame()
     """
     L = [0.5, 0.55 ,0.6, 0.65, 0.7]
     for l in L:
