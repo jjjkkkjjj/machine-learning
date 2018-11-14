@@ -204,7 +204,7 @@ if __name__ == '__main__':
     #     'lamb': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 'similarity': ['rbf']}])
     #check_important_feature_frame()
     #cross_validation()
-    #leave_one_out(n_jobs=10)
+    leave_one_out(n_jobs=10)
     #leave_one_person_out(n_jobs=10)
 
     # no need 'global'
@@ -222,7 +222,28 @@ if __name__ == '__main__':
 
     # no thread
     """
-    check_important_feature_frame()
+    """
+    lamb = 0.5
+    path = './result/{0}/{1}/g{2}/mu{3}lamb{4}'.format(experience, dir_name, gamma, mu, lamb)
+    clf = joblib.load(path + '/MILES.pkl.cmp')
+    bags, labels, csvnamelist = mil.bags, mil.labels, mil.csvFilePaths
+    Pbags_indices_of_bags = np.where(np.array(labels) == 1)[0]  # .shape[0] means l+
+    Nbags_indices_of_bags = np.where(np.array(labels) == -1)[0]  # .shape means l-
+
+    newbags, newlabels, newcsvnamelist = [], [], []
+    for indexPositive in Pbags_indices_of_bags:
+        newbags.append(bags[indexPositive])
+        newlabels.append(1)
+        newcsvnamelist.append(csvnamelist[indexPositive])
+    for indexNegative in Nbags_indices_of_bags:
+        newbags.append(bags[indexNegative])
+        newlabels.append(-1)
+        newcsvnamelist.append(csvnamelist[indexNegative])
+    newlabels = np.array(newlabels)
+
+    predicted = clf.predict(newbags, instancePrediction=False)
+    print(np.average(np.sign(predicted) == np.array(newlabels))*100)
+    """
     """
     L = [0.5, 0.55 ,0.6, 0.65, 0.7]
     for l in L:

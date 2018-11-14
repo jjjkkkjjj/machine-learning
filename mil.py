@@ -15,10 +15,20 @@ import threading
 def mkdir(resultSuperDirPath):
     if not os.path.isdir('{0}'.format(resultSuperDirPath)):
         os.makedirs('{0}'.format(resultSuperDirPath))
+
+    if not os.path.isdir('{0}/func_max_image'.format(resultSuperDirPath)):
         os.makedirs('{0}/func_max_image'.format(resultSuperDirPath))
+
+    if not os.path.isdir('{0}/nonzero_image'.format(resultSuperDirPath)):
         os.makedirs('{0}/nonzero_image'.format(resultSuperDirPath))
+
+    if not os.path.isdir('{0}/bag_video'.format(resultSuperDirPath)):
         os.makedirs('{0}/bag_video'.format(resultSuperDirPath))
+
+    if not os.path.isdir('{0}/leave-one-out'.format(resultSuperDirPath)):
         os.makedirs('{0}/leave-one-out'.format(resultSuperDirPath))
+
+    if not os.path.isdir('{0}/leave-one-person-out'.format(resultSuperDirPath)):
         os.makedirs('{0}/leave-one-person-out'.format(resultSuperDirPath))
 
 def myScore(estimator, x, y):
@@ -431,7 +441,7 @@ class MIL:
                 predictedLabelsDict[str(threadIndex)] = np.sign(predicts)
                 corresctLabelsDict[str(threadIndex)] = testLabel
 
-                joblib.dump(estimator, os.path.join(resultSuperDirPath, 'leave-one-out', '{0}-{1}.pkl.cmp'.format(self.estimatorName, threadIndex)),
+                joblib.dump(estimator_, os.path.join(resultSuperDirPath, 'leave-one-out', '{0}-{1}.pkl.cmp'.format(self.estimatorName, threadIndex)),
                             compress=True)
                 if trainAcc:
                     predictedTrains = estimator_.predict(trainBags, instancePrediction=False)
@@ -527,7 +537,7 @@ class MIL:
                 predictedLabelsDict[str(threadIndex)] = np.sign(predicts)
                 corresctLabelsDict[str(threadIndex)] = testLabels
 
-                joblib.dump(estimator, os.path.join(resultSuperDirPath, 'leave-one-person-out',
+                joblib.dump(estimator_, os.path.join(resultSuperDirPath, 'leave-one-person-out',
                                                     '{0}-{1}.pkl.cmp'.format(self.estimatorName, personList[threadIndex])),
                             compress=True)
 
@@ -627,3 +637,28 @@ class MIL:
                 thread_.join()
 
             del threadList
+
+    def exportFeatureVec2csv(self, path=None):
+        if path is None:
+            path = './pitchDifficulty.csv'
+        print('exporting to \"{0}\"'.format(path))
+
+        sys.stdout.write('\r [{0}{1}]:{2:d}%'.format('#' * 0, ' ' * 20, 0))
+        sys.stdout.flush()
+        with open(path, 'w') as f:
+            #bag id, bag label, feature 1, ..., feature N
+            for index, (bag, label) in enumerate(zip(self.bags, self.labels)):
+                percent = (index + 1) / len(self.labels)
+                sys.stdout.write('\r [{0}{1}]:{2:d}%'
+                                 .format('#' * int(percent * 20), ' ' * (20 - int(percent * 20)),int(percent * 100)))
+                sys.stdout.flush()
+                for instance in bag:
+                    features = ''
+                    #print(instance.shape)
+                    #64x64=(4096)
+
+                    for feature in instance:
+                        features += '{0},'.format(feature)
+                    row = '{0},{1},{2},\n'.format(index, label, features)
+                    f.write(row)
+        print('\nfinished exporting csv file')

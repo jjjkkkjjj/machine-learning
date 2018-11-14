@@ -8,13 +8,13 @@ from frame_detector import frame_detector, bag2video, plusvideo
 from mil import MIL
 
 method = 'img'
-dir_name = 'img-misvm-focusEasy'
+dir_name = 'img-misvm'
 kernel = 'rbf'
 gamma = 0.0012
-C = 1000
+C = 4000
 experience = '2018'
-positiveCsvFileName='easy-video.csv'
-negativeCsvFileName='hard-video.csv'
+positiveCsvFileName='hard-video.csv'
+negativeCsvFileName='easy-video.csv'
 path = './result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, C)
 dicimate = 4
 
@@ -183,6 +183,9 @@ def get_from_openpose():
     videopaths = ["/home/junkado/Desktop/keio/hard/focusright/{0}.mp4".format(editfile) for editfile in editLists]
     op.manual_videofiles(videopaths)
 
+def exportFeatureVec2Csv():
+    mil.exportFeatureVec2csv()
+
 if __name__ == '__main__':
     #search_hyperparameter(ini=0.001, fin=0.002, step=0.0001, randomSampledTrainRatio=0.8)
     #gridsearch(params_grid=[{'gamma': [0.0012], 'C': [10, 50, 100, 500, 1000, 5000, 10000], 'kernel': ['rbf']}])
@@ -190,9 +193,10 @@ if __name__ == '__main__':
     #check_identification_func_max()
     #cross_validation()
     #get_from_openpose()
-    #leave_one_out(n_jobs=10)
+    exportFeatureVec2Csv()
+    #leave_one_out(n_jobs=14)
     #leave_one_person_out(n_jobs=10)
-
+    """
     # use thread
     estimators = []
     pathes = []
@@ -201,7 +205,7 @@ if __name__ == '__main__':
         estimators.append(misvm.miSVM(kernel=kernel, gamma=gamma, C=cc, verbose=True, max_iters=100))
         pathes.append('./result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, cc))
     mil.pluralParametersTrain(estimators, pathes=pathes, n_jobs=10)
-
+    """
     """
     # no thread
     CC = [1000, 3000, 3500, 4000, 5000]
