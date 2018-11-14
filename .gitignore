@@ -255,3 +255,5 @@ temporal_files/*
 
 result/*
 !.gitkeep
+
+pitchDifficulty.csv
