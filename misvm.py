@@ -184,7 +184,8 @@ def get_from_openpose():
     op.manual_videofiles(videopaths)
 
 def exportFeatureVec2Csv():
-    mil.exportFeatureVec2csv()
+    #mil.exportFeatureVec2csv(data='feature')
+    mil.exportFeatureVec2csv(data='person')
 
 if __name__ == '__main__':
     #search_hyperparameter(ini=0.001, fin=0.002, step=0.0001, randomSampledTrainRatio=0.8)

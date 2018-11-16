@@ -638,27 +638,40 @@ class MIL:
 
             del threadList
 
-    def exportFeatureVec2csv(self, path=None):
+    def exportFeatureVec2csv(self, path=None, data='feature'):
         if path is None:
-            path = './pitchDifficulty.csv'
+            path = './data/pitchDifficulty-{0}.csv'.format(data)
         print('exporting to \"{0}\"'.format(path))
 
         sys.stdout.write('\r [{0}{1}]:{2:d}%'.format('#' * 0, ' ' * 20, 0))
         sys.stdout.flush()
         with open(path, 'w') as f:
-            #bag id, bag label, feature 1, ..., feature N
-            for index, (bag, label) in enumerate(zip(self.bags, self.labels)):
-                percent = (index + 1) / len(self.labels)
-                sys.stdout.write('\r [{0}{1}]:{2:d}%'
-                                 .format('#' * int(percent * 20), ' ' * (20 - int(percent * 20)),int(percent * 100)))
-                sys.stdout.flush()
-                for instance in bag:
-                    features = ''
-                    #print(instance.shape)
-                    #64x64=(4096)
+            if data == 'feature':
+                # bag id, bag label, feature 1, ..., feature N
+                for index, (bag, label) in enumerate(zip(self.bags, self.labels)):
+                    percent = (index + 1) / len(self.labels)
+                    sys.stdout.write('\r [{0}{1}]:{2:d}%'
+                                     .format('#' * int(percent * 20), ' ' * (20 - int(percent * 20)),
+                                             int(percent * 100)))
+                    sys.stdout.flush()
+                    for instance in bag:
+                        features = ''
+                        # print(instance.shape)
+                        # 64x64=(4096)
 
-                    for feature in instance:
-                        features += '{0},'.format(feature)
-                    row = '{0},{1},{2},\n'.format(index, label, features)
-                    f.write(row)
+                        for feature in instance:
+                            features += '{0},'.format(feature)
+                        row = '{0},{1},{2},\n'.format(index, label, features)
+                        f.write(row)
+            elif data == 'person':
+                # bag id, person id
+                for bagId, person in enumerate(self.persons):
+                    percent = (bagId + 1) / len(self.labels)
+                    sys.stdout.write('\r [{0}{1}]:{2:d}%'
+                                     .format('#' * int(percent * 20), ' ' * (20 - int(percent * 20)),
+                                             int(percent * 100)))
+                    sys.stdout.flush()
+                    f.write('{0},{1},\n'.format(bagId, person))
+            else:
+                raise ValueError("{0} is invalid data name".format(data))
         print('\nfinished exporting csv file')
