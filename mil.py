@@ -652,7 +652,24 @@ class MIL:
         sys.stdout.write('\r [{0}{1}]:{2:d}%'.format('#' * 0, ' ' * 20, 0))
         sys.stdout.flush()
         with open(path, 'w') as f:
-            if data == 'feature':
+            if data == 'all':
+                # bag id, bag label, person id, csvpath, feature 1, ..., feature N
+                for bagId, (bag, label, person, csvFilePath) in enumerate(zip(self.bags, self.labels, self.persons, self.csvFilePaths)):
+                    percent = (bagId + 1) / len(self.labels)
+                    sys.stdout.write('\r [{0}{1}]:{2:d}%'
+                                     .format('#' * int(percent * 20), ' ' * (20 - int(percent * 20)),
+                                             int(percent * 100)))
+                    sys.stdout.flush()
+                    for instance in bag:
+                        features = ''
+                        # print(instance.shape)
+                        # 64x64=(4096)
+
+                        for feature in instance:
+                            features += '{0},'.format(feature)
+                        row = '{0},{1},{2},{3},{4},\n'.format(bagId, label, person, csvFilePath, features)
+                        f.write(row)
+            elif data == 'feature':
                 # bag id, bag label, feature 1, ..., feature N
                 for index, (bag, label) in enumerate(zip(self.bags, self.labels)):
                     percent = (index + 1) / len(self.labels)
@@ -678,6 +695,93 @@ class MIL:
                                              int(percent * 100)))
                     sys.stdout.flush()
                     f.write('{0},{1},\n'.format(bagId, person))
+            else:
+                raise ValueError("{0} is invalid data name".format(data))
+        print('\nfinished exporting csv file')
+
+    def importCsv2Feature(self, path, data='feature', featureDims=4096):
+        print('importing from \"{0}\"'.format(path))
+
+        sys.stdout.write('\r [{0}{1}]:{2:d}%'.format('#' * 0, ' ' * 20, 0))
+        sys.stdout.flush()
+        with open(path, 'r') as f:
+            bagId = 0
+            temporalBag = []
+            lines = f.readlines()
+
+            if data == 'all':
+                self.bags = []
+                self.labels = []
+                self.persons = []
+                self.csvFilePaths = []
+                # bag id, bag label, person id, csvpath, feature 1, ..., feature N
+                for index, line in enumerate(lines):
+                    percent = (index + 1) / len(lines)
+                    sys.stdout.write('\r [{0}{1}]:{2:d}%'
+                                     .format('#' * int(percent * 20), ' ' * (20 - int(percent * 20)),
+                                             int(percent * 100)))
+                    sys.stdout.flush()
+
+                    data = line.split(',')
+                    bagid = float(data[0])
+                    baglabel = float(data[1])
+                    person = data[2]
+                    csvfilepath = data[3]
+                    features = np.array(data[4: 4 + featureDims], dtype=np.float)
+
+                    if bagId == bagid:
+                        temporalBag.append(features)
+                    else:
+                        self.bags.append(temporalBag)
+                        self.labels.append(baglabel)
+                        self.persons.append(person)
+                        self.csvFilePaths.append(csvfilepath)
+                        temporalBag = []
+                        bagId += 1
+                self.labels = np.array(self.labels)
+                print('\npositive: {0}, negative: {1}'.format(np.sum(self.labels == 1), np.sum(self.labels == -1)))
+
+            elif data == 'feature':
+                self.bags = []
+                self.labels = []
+                # bag id, bag label, feature 1, ..., feature N
+                for index, line in enumerate(lines):
+                    percent = (index + 1) / len(lines)
+                    sys.stdout.write('\r [{0}{1}]:{2:d}%'
+                                     .format('#' * int(percent * 20), ' ' * (20 - int(percent * 20)),
+                                             int(percent * 100)))
+                    sys.stdout.flush()
+
+                    data = line.split(',')
+                    bagid = float(data[0])
+                    baglabel = float(data[1])
+                    features = np.array(data[2: 2 + featureDims], dtype=np.float)
+
+                    if bagId == bagid:
+                        temporalBag.append(features)
+                    else:
+                        self.bags.append(temporalBag)
+                        self.labels.append(baglabel)
+                        temporalBag = []
+                        bagId += 1
+                self.labels = np.array(self.labels)
+                print('\npositive: {0}, negative: {1}'.format(np.sum(self.labels == 1), np.sum(self.labels == -1)))
+
+            elif data == 'person':
+                self.persons = []
+                # bag id, person id
+                for index, line in enumerate(lines):
+                    percent = (index + 1) / len(lines)
+                    sys.stdout.write('\r [{0}{1}]:{2:d}%'
+                                     .format('#' * int(percent * 20), ' ' * (20 - int(percent * 20)),
+                                             int(percent * 100)))
+                    sys.stdout.flush()
+
+                    data = line.split(',')
+                    bagid = float(data[0])
+                    person = data[1]
+                    self.persons.append(person)
+
             else:
                 raise ValueError("{0} is invalid data name".format(data))
         print('\nfinished exporting csv file')
