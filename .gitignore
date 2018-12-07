@@ -258,3 +258,6 @@ result/*
 
 data/*
 !.gitkeep
+
+video/*
+!.gitkeep
