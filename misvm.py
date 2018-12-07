@@ -11,7 +11,7 @@ method = 'img'
 dir_name = 'img-misvm'
 kernel = 'rbf'
 gamma = 0.0012
-C = 4000
+C = 3500
 experience = '2018'
 positiveCsvFileName='hard-video.csv'
 negativeCsvFileName='easy-video.csv'
@@ -71,6 +71,7 @@ def check_identification_func_max():
         frame_detector(csvnamelist[bag_i], frame, path)
         #bag2video(csvnamelist[bag_i], nontimelist[bag_i], path)
         ini = fin
+
 
 
 def search_hyperparameter(ini, fin, step, randomSampledTrainRatio):
@@ -187,6 +188,39 @@ def exportFeatureVec2Csv():
     #mil.exportFeatureVec2csv(data='feature')
     mil.exportFeatureVec2csv(data='person')
 
+def visualization():
+    bags = mil.bags
+    classifier = joblib.load(path + '/misvm.pkl.cmp')
+    indices = [i for i in range(len(bags))]
+    bag_predictions, instance_predictions = classifier.predict(bags, instancePrediction=True)
+
+    ini = 0
+    ident_func_results = []
+    for index, bag_i in enumerate(indices):
+        fin = ini + len(bags[bag_i])
+        ident_func_results.append(np.array(instance_predictions[ini:fin]))
+        ini = fin
+    """
+    ident_func_results.append(np.array([-0.78560122, 0.54519545, 0.46807868, 0.46715913, 0.26363045, 0.27786555,
+                                        0.22690806, 0.20750884, 0.32449584, 0.37900016, 0.23489776, 0.15342022,
+                                        0.4148295, 0.25238769, 0.29778564, 0.22747711, 0.21663552, 0.07551101,
+                                        0.19331927, 0.18972733, 0.2916057, 0.31533071, 0.28310115, 0.19699904
+                                           , -0.44702401, -0.23014429, 0.09828476, -0.13944687, -0.07006605, -0.10182374
+                                           , -0.18137682, -0.245083, -0.57225477, -0.55978502, -0.84435834, -0.8639321
+                                           , -0.89150618, -0.97406168, -0.89231222, -0.44298549, -0.39935993, -0.311711
+                                           , -0.42653582, -0.51900241, -0.50230192, -0.36062895, -0.3329459, -0.26808575
+                                           , -0.23018796, -0.21894479, -0.4197332, -0.40067229, -0.55829579, -0.55243558
+                                           , -0.44397456, -0.59697793, -0.57133463, -0.63345068, -0.42979022, -0.2246336
+                                           , -0.36737076, -0.23052741, -0.06819818, -0.42510965, -1.00368161,
+                                        -1.03595145
+                                           , -1.00060042, -0.96606247, -1.02635246, -1.041099, -0.95649054, -0.95343488
+                                           , -0.77730283, -0.6717092, -0.45264443, -0.44387568, -0.26860944, -0.06294351
+                                           , -0.20784132, -0.28675038, 0.00213939, -0.01451041, 0.03790828, 0.44598379
+                                           , 0.32833122, -0.22523026, -0.78366198, -0.77177513, -1.00599781,
+                                        -1.50473151]))
+    """
+    mil.visualization(ident_func_results, indices, resultSuperDirPath=path)
+
 if __name__ == '__main__':
     #search_hyperparameter(ini=0.001, fin=0.002, step=0.0001, randomSampledTrainRatio=0.8)
     #gridsearch(params_grid=[{'gamma': [0.0012], 'C': [10, 50, 100, 500, 1000, 5000, 10000], 'kernel': ['rbf']}])
@@ -194,7 +228,8 @@ if __name__ == '__main__':
     #check_identification_func_max()
     #cross_validation()
     #get_from_openpose()
-    exportFeatureVec2Csv()
+    #exportFeatureVec2Csv()
+    visualization()
     #leave_one_out(n_jobs=14)
     #leave_one_person_out(n_jobs=10)
     """

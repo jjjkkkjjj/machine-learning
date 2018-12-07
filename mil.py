@@ -11,6 +11,9 @@ from sklearn.model_selection import GridSearchCV, cross_validate
 from parameter_tune import tune
 import copy
 import threading
+import cv2
+import matplotlib.pyplot as plt
+
 
 def mkdir(resultSuperDirPath):
     if not os.path.isdir('{0}'.format(resultSuperDirPath)):
@@ -30,6 +33,9 @@ def mkdir(resultSuperDirPath):
 
     if not os.path.isdir('{0}/leave-one-person-out'.format(resultSuperDirPath)):
         os.makedirs('{0}/leave-one-person-out'.format(resultSuperDirPath))
+
+    if not os.path.isdir('{0}/video'.format(resultSuperDirPath)):
+        os.makedirs('{0}/video'.format(resultSuperDirPath))
 
 def myScore(estimator, x, y):
     yPred = np.sign(estimator.predict(x, instancePrediction=False))
@@ -107,6 +113,7 @@ class MIL:
         self.labels = []
         self.csvFilePaths = []
         self.persons = []
+        self.dicimate = dicimate
 
         positiveCsvFileNames = list(self.positives.keys())
         negativeCsvFileNames = list(self.negatives.keys())
@@ -605,7 +612,6 @@ class MIL:
 
         return estimators
 
-
     """
     example: pluralParametersImplement(estimators, pathes,
                                         extraArgs=[{}, {sampleNumPerLabel:3}, {}], n_jobs=8)
@@ -675,3 +681,80 @@ class MIL:
             else:
                 raise ValueError("{0} is invalid data name".format(data))
         print('\nfinished exporting csv file')
+
+    def visualization(self, time_series_data, indices, resultSuperDirPath, mode='plot', frameSize=(800, 600)):
+        mkdir(resultSuperDirPath)
+        ini = 0
+
+        for index, bag_i in enumerate(indices):
+            sys.stdout.write('\r{0}/{1}'.format(index + 1, len(indices)))
+            fin = ini + len(self.bags[bag_i])
+
+            with open(self.csvFilePaths[bag_i], 'r') as f:
+                videopath = f.readline().split(',')[0]
+
+                videoname = videopath.split('/')[-1][:-4] + '.mp4'
+                video = cv2.VideoCapture(videopath)
+                height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
+                frame_max = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+                frame_rate = video.get(cv2.CAP_PROP_FPS)
+                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                writer = cv2.VideoWriter(os.path.join(resultSuperDirPath, 'video', videoname), fourcc, frame_rate, frameSize)
+
+                fig = plt.figure()
+                # (x, y)
+                graphImgSize = (int(frameSize[0]), int(frameSize[1]/2))
+                def updateFrame(frame):
+                    if frame != 0:
+                        plt.cla()
+
+                    xmax = time_series_data[index].size - 1
+                    ymin, ymax = np.min(time_series_data[index]) - 0.1, np.max(time_series_data[index]) + 0.1
+                    plt.xlim([0, xmax])
+                    plt.ylim([ymin, ymax])
+                    if mode == 'plot':
+                        plt.hlines(y=[0], xmin=0, xmax=xmax, colors='black', linestyles='--')
+                        plt.plot(time_series_data[index], '-o')
+
+                        x = int(frame / self.dicimate)
+                        plt.vlines(x=[x], ymin=ymin, ymax=ymax, colors='black', linewidths=3)
+                        plt.plot([x], time_series_data[index][x], 'o', color='red')
+                    elif mode == 'bar':
+                        plt.bar(np.arange(time_series_data[index].size), time_series_data[index], align='center', color='black')
+
+                        x = int(frame / self.dicimate)
+                        plt.bar(x, time_series_data[index][x], align='center', color='red')
+                    else:
+                        raise ValueError('{0} is invalid mode'.format(mode))
+
+                for frame in range(frame_max):
+                    percent = int((frame + 1.0) * 100 / frame_max)
+                    sys.stdout.write(
+                        '\r{0}/{1}:writing {2}... |{3}| {4}% finished'.format(index + 1, len(indices), videoname,
+                                                                              '#' * int(percent * 0.2) + '-' * (20 - int(percent * 0.2)),
+                                                                              percent))
+                    sys.stdout.flush()
+
+                    ret, videoImg = video.read()
+                    updateFrame(frame)
+
+                    # convert canvas to image
+                    fig.canvas.draw()
+
+                    width, height = fig.get_size_inches() * fig.get_dpi()
+                    graphImg = np.fromstring(fig.canvas.tostring_rgb(), dtype='uint8', sep='').reshape(int(height),
+                                                                                                       int(width), 3)
+                    # img is rgb, convert to opencv's default bgr
+                    graphImg = cv2.resize(cv2.cvtColor(graphImg, cv2.COLOR_RGB2BGR), graphImgSize)
+
+                    outputImg = cv2.vconcat((graphImg, cv2.resize(videoImg, (int(frameSize[0]), int(frameSize[1]/2)))))
+                    writer.write(outputImg)
+
+                writer.release()
+                video.release()
+
+
+            ini = fin
+
+        print('\nfinished')

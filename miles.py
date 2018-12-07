@@ -9,7 +9,7 @@ import cv2
 method = 'img'
 dir_name = 'img-miles'
 kernel = 'rbf'
-lamb = 0.55
+lamb = 0.7
 mu = 0.5
 gamma = 0.0012
 C = 5000 # pointless
@@ -196,6 +196,20 @@ def plot_confusion_matrix(cm,
     plt.xlabel('Predicted label\naccuracy={:0.4f}; misclass={:0.4f}'.format(accuracy, misclass))
     plt.show()
 
+def visualization():
+    bags = mil.bags
+    classifier = joblib.load(path + '/MILES.pkl.cmp')
+    indices = [i for i in range(len(bags))]
+
+    ini = 0
+    weights = []
+    for index, bag_i in enumerate(indices):
+        fin = ini + len(bags[bag_i])
+        weights.append(np.array(classifier.w_[ini: fin]))
+        ini = fin
+
+    mil.visualization(weights, indices, mode='bar', resultSuperDirPath=path)
+
 if __name__ == '__main__':
     #main()
     #search_hyperparameter(savemotiontmp=False, ini=0.005, fin=0.01, step=0.0001)
@@ -204,7 +218,8 @@ if __name__ == '__main__':
     #     'lamb': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 'similarity': ['rbf']}])
     #check_important_feature_frame()
     #cross_validation()
-    leave_one_out(n_jobs=10)
+    visualization()
+    #leave_one_out(n_jobs=12)
     #leave_one_person_out(n_jobs=10)
 
     # no need 'global'
