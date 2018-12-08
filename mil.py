@@ -71,7 +71,7 @@ class MIL:
             for file in positiveCsvFiles:
                 csvfilename = file.split(',')[0] + '.' + videoExtension
                 hand = file.split(',')[1][0]
-                person = file.split(',')[1][1]
+                person = file.split(',')[1][1:]
 
                 infoDic = {'hand': hand, 'person': person}
                 self.positives[csvfilename] = infoDic
@@ -83,7 +83,7 @@ class MIL:
             for file in negativeCsvFiles:
                 csvfilename = file.split(',')[0] + '.' + videoExtension
                 hand = file.split(',')[1][0]
-                person = file.split(',')[1][1]
+                person = file.split(',')[1][1:]
 
                 infoDic = {'hand': hand, 'person': person}
                 self.negatives[csvfilename] = infoDic
@@ -297,7 +297,7 @@ class MIL:
                     self.csvFilePaths.append(csvfilepath)
 
                 elif self.method == 'combination':
-
+                    pass
 
 
                 else:
@@ -647,14 +647,16 @@ class MIL:
 
             del threadList
 
-    def exportFeatureVec2csv(self, path=None, data='feature'):
-        if path is None:
-            path = './data/pitchDifficulty-{0}.csv'.format(data)
-        print('exporting to \"{0}\"'.format(path))
+    def exportFeatureVec2csv(self, data='feature'):
+        positiveFile = os.path.basename(self.info['positiveCsvFileName']).split('.')[0]
+        negativeFile = os.path.basename(self.info['negativeCsvFileName']).split('.')[0]
+        exportPath = 'data/{0}_{1}_{2}_{3}_{4}.csv'.format(self.experience, self.dicimate, self.method, positiveFile, negativeFile)
+
+        print('exporting to \"{0}\"'.format(exportPath))
 
         sys.stdout.write('\r [{0}{1}]:{2:d}%'.format('#' * 0, ' ' * 20, 0))
         sys.stdout.flush()
-        with open(path, 'w') as f:
+        with open(exportPath, 'w') as f:
             if data == 'all':
                 # bag id, bag label, person id, csvpath, feature 1, ..., feature N
                 for bagId, (bag, label, person, csvFilePath) in enumerate(zip(self.bags, self.labels, self.persons, self.csvFilePaths)):
@@ -702,12 +704,19 @@ class MIL:
                 raise ValueError("{0} is invalid data name".format(data))
         print('\nfinished exporting csv file')
 
-    def importCsv2Feature(self, path, data='feature', featureDims=4096):
-        print('importing from \"{0}\"'.format(path))
+    def importCsv2Feature(self, positiveCsvFileName, negativeCsvFileName, dicimate, data='feature', featureDims=4096, positiveLabel=1.0, negativeLabel=-1.0):
+        positiveFile = os.path.basename(positiveCsvFileName).split('.')[0]
+        negativeFile = os.path.basename(negativeCsvFileName).split('.')[0]
+        importPath = 'data/{0}_{1}_{2}_{3}_{4}.csv'.format(self.experience, dicimate, self.method, positiveFile, negativeFile)
+
+        print('importing from \"{0}\"'.format(importPath))
 
         sys.stdout.write('\r [{0}{1}]:{2:d}%'.format('#' * 0, ' ' * 20, 0))
         sys.stdout.flush()
-        with open(path, 'r') as f:
+        with open(importPath, 'r') as f:
+            self.dicimate = dicimate
+            self.info = {'positiveCsvFileName': positiveCsvFileName, 'negativeCsvFileName': negativeCsvFileName}
+
             bagId = 0
             temporalBag = []
             lines = f.readlines()
@@ -717,6 +726,9 @@ class MIL:
                 self.labels = []
                 self.persons = []
                 self.csvFilePaths = []
+                self.positives = {}
+                self.negatives = {}
+
                 # bag id, bag label, person id, csvpath, feature 1, ..., feature N
                 for index, line in enumerate(lines):
                     percent = (index + 1) / len(lines)
@@ -731,16 +743,24 @@ class MIL:
                     person = data[2]
                     csvfilepath = data[3]
                     features = np.array(data[4: 4 + featureDims], dtype=np.float)
-
-                    if bagId == bagid:
-                        temporalBag.append(features)
-                    else:
+                    #####mistaken code!!!!!######
+                    if bagId != bagid:
                         self.bags.append(temporalBag)
                         self.labels.append(baglabel)
                         self.persons.append(person)
                         self.csvFilePaths.append(csvfilepath)
+                        infoDic = {'hand': person[0], 'person': person[1:]}
+                        if baglabel == positiveLabel:
+                            self.positives[csvfilepath] = infoDic
+                        elif baglabel == negativeLabel:
+                            self.negatives[csvfilepath] = infoDic
+                        else:
+                            print('\nWarning: unknown label was detected {0}\n'.format(baglabel))
                         temporalBag = []
                         bagId += 1
+
+                    else:
+                        temporalBag.append(features)
                 self.labels = np.array(self.labels)
                 print('\npositive: {0}, negative: {1}'.format(np.sum(self.labels == 1), np.sum(self.labels == -1)))
 

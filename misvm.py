@@ -19,10 +19,10 @@ path = './result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, C)
 dicimate = 4
 
 mil = MIL(method=method, experience=experience, dirName=dir_name, estimatorName='misvm')
-#mil.setData(positiveCsvFileName=positiveCsvFileName, negativeCsvFileName=negativeCsvFileName,
-#            saveMotionTmplate=False, dicimate=dicimate, videoExtension='mp4', csvExtension='csv')
-mil.importCsv2Feature(path='./data/pitchDifficulty-feature.csv', data='feature')
-mil.importCsv2Feature(path='./data/pitchDifficulty-person.csv', data='person')
+mil.setData(positiveCsvFileName=positiveCsvFileName, negativeCsvFileName=negativeCsvFileName,
+            saveMotionTmplate=False, dicimate=dicimate, videoExtension='mp4', csvExtension='csv')
+#mil.importCsv2Feature(positiveCsvFileName, negativeCsvFileName, dicimate, data='all')
+
 
 
 def main():# read hard and easy
@@ -189,7 +189,7 @@ def get_from_openpose():
 
 def exportFeatureVec2Csv():
     #mil.exportFeatureVec2csv(data='feature')
-    mil.exportFeatureVec2csv(data='person')
+    mil.exportFeatureVec2csv(data='all')
 
 def visualization():
     bags = mil.bags
@@ -227,11 +227,11 @@ def visualization():
 if __name__ == '__main__':
     #search_hyperparameter(ini=0.001, fin=0.002, step=0.0001, randomSampledTrainRatio=0.8)
     #gridsearch(params_grid=[{'gamma': [0.0012], 'C': [10, 50, 100, 500, 1000, 5000, 10000], 'kernel': ['rbf']}])
-    main()
+    #main()
     #check_identification_func_max()
     #cross_validation()
     #get_from_openpose()
-    #exportFeatureVec2Csv()
+    exportFeatureVec2Csv()
     #visualization()
     #leave_one_out(n_jobs=14)
     #leave_one_person_out(n_jobs=10)
