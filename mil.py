@@ -92,22 +92,7 @@ class MIL:
 
         # mean
         if self.method in ['align', 'dirvec', 'img']:
-            dataLists = []
-            for index, csvfilepath in enumerate(csvAllFilePaths):
-                with open(csvfilepath, 'r') as f:
-                    reader = csv.reader(f)
-                    videopath = next(reader)[0]
-                    videoname = videopath.split('/')
-                    videoname = videoname[-1]
-
-                    header = next(reader)
-
-                    time_row = [row for row in reader]
-                    dataLists.append(Data(videopath=videopath, width=header[1], height=header[3],
-                                          frame_num=header[5], fps=header[7], time_rows=time_row))
-
-            self.mean = self.__meanForAlign(dataLists)
-            del dataLists
+            self.mean = self.__mean(csvAllFilePaths)
 
         self.bags = []
         self.labels = []
@@ -311,6 +296,10 @@ class MIL:
                     self.bags.append(bag)
                     self.csvFilePaths.append(csvfilepath)
 
+                elif self.method == 'combination':
+
+
+
                 else:
                     raise ValueError('{0} is invalid method'.format(self.method))
 
@@ -320,7 +309,21 @@ class MIL:
         self.labels = np.array(self.labels, dtype=float)
         print('positive: {0}, negative: {1}'.format(np.sum(self.labels == 1), np.sum(self.labels == -1)))
 
-    def __meanForAlign(self, dataLists, standardJointNumber=0, standardFrame=0):
+    def __mean(self, csvAllFilePaths, standardJointNumber=0, standardFrame=0):
+        dataLists = []
+        for index, csvfilepath in enumerate(csvAllFilePaths):
+            with open(csvfilepath, 'r') as f:
+                reader = csv.reader(f)
+                videopath = next(reader)[0]
+                videoname = videopath.split('/')
+                videoname = videoname[-1]
+
+                header = next(reader)
+
+                time_row = [row for row in reader]
+                dataLists.append(Data(videopath=videopath, width=header[1], height=header[3],
+                                      frame_num=header[5], fps=header[7], time_rows=time_row))
+
         dataLists = np.array(dataLists)
         X = []
         Y = []
