@@ -10,9 +10,9 @@ from mil import MIL
 method = 'img'
 dir_name = 'img-misvm'
 kernel = 'rbf'
-gamma = 0.0012
-C = 3500
-experience = '2018'
+gamma = 0.002
+C = 7500
+experience = '2017'
 positiveCsvFileName='hard-video.csv'
 negativeCsvFileName='easy-video.csv'
 path = './result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, C)
@@ -20,7 +20,7 @@ dicimate = 4
 
 mil = MIL(method=method, experience=experience, dirName=dir_name, estimatorName='misvm')
 mil.setData(positiveCsvFileName=positiveCsvFileName, negativeCsvFileName=negativeCsvFileName,
-            saveMotionTmplate=False, dicimate=dicimate, videoExtension='mp4', csvExtension='csv')
+            saveMotionTmplate=True, dicimate=dicimate, videoExtension='mp4', csvExtension='csv')
 #mil.importCsv2Feature(positiveCsvFileName, negativeCsvFileName, dicimate, data='all')
 
 
@@ -180,12 +180,12 @@ def plot_confusion_matrix(cm,
 def get_from_openpose():
     op = OpenPose()
     #op.get_from_openpose(videosdir='/home/junkado/Desktop/keio/hard/focusright', extension=".mp4")
-    #op.manual_videofile("/home/junkado/Desktop/keio/hard/focusright/12.mp4")
+    op.manual_videofile("/home/junkado/Desktop/keio/hard/allcutvideo/C1234.mp4")
 
     #editLists = [8,9,10,11,12,13,14,16,17,23,24,25,26,27,30,50,51,65,99,100,101,102,103,125,129,130,131,132,133,134,135,137,138,139,140,141,143,145,160,163]
-    editLists = [170,261,263,264,266,269,270,271,272,273,274,275,276,277,306,307,308,309,310,311,312,314,315,316,317,318,319,320,323,325,326,327,328,329,338,339,340,341,342,343]
-    videopaths = ["/home/junkado/Desktop/keio/hard/focusright/{0}.mp4".format(editfile) for editfile in editLists]
-    op.manual_videofiles(videopaths)
+    #editLists = [170,261,263,264,266,269,270,271,272,273,274,275,276,277,306,307,308,309,310,311,312,314,315,316,317,318,319,320,323,325,326,327,328,329,338,339,340,341,342,343]
+    #videopaths = ["/home/junkado/Desktop/keio/hard/focusright/{0}.mp4".format(editfile) for editfile in editLists]
+    #op.manual_videofiles(videopaths)
 
 def exportFeatureVec2Csv():
     #mil.exportFeatureVec2csv(data='feature')
@@ -227,11 +227,11 @@ def visualization():
 if __name__ == '__main__':
     #search_hyperparameter(ini=0.001, fin=0.002, step=0.0001, randomSampledTrainRatio=0.8)
     #gridsearch(params_grid=[{'gamma': [0.0012], 'C': [10, 50, 100, 500, 1000, 5000, 10000], 'kernel': ['rbf']}])
-    #main()
-    #check_identification_func_max()
+    main()
+    check_identification_func_max()
     #cross_validation()
     #get_from_openpose()
-    exportFeatureVec2Csv()
+    #exportFeatureVec2Csv()
     #visualization()
     #leave_one_out(n_jobs=14)
     #leave_one_person_out(n_jobs=10)

@@ -297,8 +297,34 @@ class MIL:
                     self.csvFilePaths.append(csvfilepath)
 
                 elif self.method == 'combination':
-                    pass
+                    if videoname in positiveCsvFileNames:
+                        self.labels.append(1)
+                        data = Data(videopath=videopath, width=header[1], height=header[3],
+                                    frame_num=header[5], fps=header[7], time_rows=time_row,
+                                    hand=self.positives[videoname]['hand'])
+                        self.persons.append(data.hand + self.positives[videoname]['person'])
 
+                    elif videoname in negativeCsvFileNames:
+                        self.labels.append(-1)
+                        data = Data(videopath=videopath, width=header[1], height=header[3],
+                                    frame_num=header[5], fps=header[7], time_rows=time_row,
+                                    hand=self.negatives[videoname]['hand'])
+                        self.persons.append(data.hand + self.negatives[videoname]['person'])
+
+                    else:
+                        continue
+
+                    if not data.norm(save=False, mean_for_alignment=self.mean):
+                        self.labels = self.labels[:-1]
+                        self.persons = self.persons[:-1]
+                        # print(videoname)
+                        continue
+
+                    data.mirror(mirrorFor='l')
+                    features = data.combination(3, self.dicimate)
+                    bag = data.bag(None, **features)
+                    self.bags.append(bag)
+                    self.csvFilePaths.append(csvfilepath)
 
                 else:
                     raise ValueError('{0} is invalid method'.format(self.method))

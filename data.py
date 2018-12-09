@@ -4,6 +4,7 @@ from scipy.interpolate import interp1d
 import sys
 import cv2
 from scipy import fftpack
+import itertools
 
 Lines = [[1, 0],[1, 2],[2, 3],[3, 4],[1, 5],[5, 6],[6, 7],[1, 8],[8, 9],[9, 10],[1, 11],[11, 12],
          [12, 13], [0, 14],[14, 16],[0, 15],[15, 17]]
@@ -321,11 +322,17 @@ class Data:
         for key, feature in new_feature.items():
             if self.frame_num == np.array(feature).shape[0]:
                 feature_vectors[key] = feature
+
                 if delete_index is not None:
                     feature_vectors[key] = np.delete(feature_vectors[key], delete_index, axis=1)
 
             else:
-                raise TypeError('{0}\'s shape which is {1} must be ({2},...)'.format(key, np.array(feature).shape, self.frame_num))
+                if args is None:
+                    raise TypeError('{0}\'s shape which is {1} must be ({2},...)'.format(key, np.array(feature).shape,
+                                                                                         self.frame_num))
+                else:
+                    feature_vectors[key] = feature
+
 
         Bag = np.hstack(tuple([feature for feature in feature_vectors.values()]))
         """
@@ -584,7 +591,7 @@ class Data:
             #    break
 
         if save:
-            fourcc = cv2.VideoWriter_fourcc(*'MPEG')
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
             writer = cv2.VideoWriter('./bag/joint2img/{0}'.format(self.videopath.split('/')[-1]), fourcc, 30.0, (height, width))
             for img in imgs:
                 writer.write(cv2.cvtColor(np.uint8(img), cv2.COLOR_GRAY2RGB))
@@ -603,7 +610,7 @@ class Data:
         newimgs = []
 
         if save:
-            fourcc = cv2.VideoWriter_fourcc(*'MPEG')
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
             writer = cv2.VideoWriter('./bag/joint2img/motempl/{0}'.format(self.videopath.split('/')[-1]), fourcc,
                                      30.0,
                                      img_pre.shape)
@@ -668,5 +675,38 @@ class Data:
         for split_index, feature in enumerate(features_):
             features[str(int(split_index/dheight)) + str(int(split_index%dwidth))] = feature
 
+
+        return features
+
+    def combination(self, selectedJoinyNum, dicimate):
+        jointIds = [i for i in range(int(len(self.joint_name)/3))]
+        jointComb = list(itertools.combinations(jointIds, selectedJoinyNum))
+
+        features = {}
+
+        # zeros[time][joint(*2)]
+        zeros = np.zeros((self.x.shape[1], self.x.shape[0]*2)) # x.shape=[joint][time]
+        x, y = zeros.copy(), zeros.copy()
+        x[:, np.arange(0, len(jointIds)*2, 2)] = self.x.T # even columns
+        y[:, np.arange(1, len(jointIds)*2, 2)] = self.y.T # odd columns
+        data = x + y
+
+        feature_ = []
+        for time in range(self.frame_num):
+            if time % dicimate == 0 or time == self.frame_num - 1:
+                for index, comb in enumerate(jointComb):
+                    nonzeroIndices = np.hstack((np.array(comb) * 2, np.array(comb) * 2 + 1))
+                    feature = np.zeros(data.shape[1])
+                    feature[nonzeroIndices] = data[time, nonzeroIndices]
+                    feature[np.isnan(feature)] = 0.0
+                    feature_.append(feature)
+        feature_ = np.array(feature_) # [time, dim]
+        features['combination'] = feature_
+        import gc
+        del data
+        del zeros
+        del x
+        del y
+        gc.collect()
 
         return features
