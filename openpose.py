@@ -33,7 +33,7 @@ class OpenPose:
             # delete all json files
             shutil.rmtree('./temporal_files')
             os.mkdir('./temporal_files')
-            with open('./.gitkeep', 'w') as gitkeep:
+            with open('./temporal_files/.gitkeep', 'w') as gitkeep:
                 gitkeep.write("")
             args = ["bash", "./get-from-openpose.sh", videopath, videosdir]
             out = subprocess.check_output(args)
@@ -196,7 +196,7 @@ class OpenPose:
         # delete all json files
         shutil.rmtree('./temporal_files')
         os.mkdir('./temporal_files')
-        with open('./.gitkeep', 'w') as gitkeep:
+        with open('./temporal_files/.gitkeep', 'w') as gitkeep:
             gitkeep.write("")
         args = ["bash", "./get-from-openpose.sh", videopath, videosdir]
         out = subprocess.check_output(args)
@@ -276,7 +276,7 @@ class OpenPose:
             # delete all json files
             shutil.rmtree('./temporal_files')
             os.mkdir('./temporal_files')
-            with open('./.gitkeep', 'w') as gitkeep:
+            with open('./temporal_files/.gitkeep', 'w') as gitkeep:
                 gitkeep.write("")
             args = ["bash", "./get-from-openpose.sh", videopath, videosdir]
             out = subprocess.check_output(args)
