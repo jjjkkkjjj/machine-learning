@@ -13,7 +13,7 @@ usage() {
     echo "  -w, --workstation [1~14] (default 2)"
     echo "  -a, --all path"
     echo
-    echo "example: bash local2workstation.sh -w 14 -a 2d-data 2d-video -e .py ./"
+    echo "example: bash local2workstation.sh 14 -a 2d-data 2d-video -e .py ./"
     exit 1
 }
 
@@ -46,6 +46,10 @@ do
             ;;
         '-i'|'--init' )
             INIT=true
+            break
+            ;;
+        '-r'|'--reinit' )
+            REINIT=true
             break
             ;;
         '-e'|'--extension' )
@@ -110,10 +114,21 @@ if $INIT; then
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/misvm/* kado@192.168.1.$WS:/home/kado/machine-learning/misvm/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/2d-data/* kado@192.168.1.$WS:/home/kado/machine-learning/2d-data/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/2d-video/*  kado@192.168.1.$WS:/home/kado/machine-learning/2d-video/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/video/*  kado@192.168.1.$WS:/home/kado/machine-learning/video/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/*.py kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/Dockerfile* kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/*.sh kado@192.168.1.$WS:/home/kado/machine-learning/
     exit 1
+fi
+
+if $REINIT; then
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/misvm/* kado@192.168.1.$WS:/home/kado/machine-learning/misvm/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/2d-data/* kado@192.168.1.$WS:/home/kado/machine-learning/2d-data/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/2d-video/*  kado@192.168.1.$WS:/home/kado/machine-learning/2d-video/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/video/*  kado@192.168.1.$WS:/home/kado/machine-learning/video/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/*.py kado@192.168.1.$WS:/home/kado/machine-learning/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/Dockerfile* kado@192.168.1.$WS:/home/kado/machine-learning/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/*.sh kado@192.168.1.$WS:/home/kado/machine-learning/
 fi
 
 if [ ! ${#param[@]} = 0 ]; then
