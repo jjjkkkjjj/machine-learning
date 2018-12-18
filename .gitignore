@@ -261,3 +261,8 @@ data/*
 
 video/*
 !.gitkeep
+
+MIL
+
+# for mac
+*.DS_Store
