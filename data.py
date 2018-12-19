@@ -5,9 +5,19 @@ import sys
 import cv2
 from scipy import fftpack
 import itertools
+import os
 
 Lines = [[1, 0],[1, 2],[2, 3],[3, 4],[1, 5],[5, 6],[6, 7],[1, 8],[8, 9],[9, 10],[1, 11],[11, 12],
          [12, 13], [0, 14],[14, 16],[0, 15],[15, 17]]
+
+def checkExistDir():
+    if not os.path.exists('./bag/joint2img/motempl'):
+        os.makedirs('./bag/joint2img/motempl')
+
+    if not os.path.exists('./bag/norm'):
+        os.makedirs('./bag/norm')
+
+
 
 class Data:
     def __init__(self, videopath, width, height, frame_num, fps, time_rows, hand=None, dicimate=None):
@@ -44,6 +54,8 @@ class Data:
 
         for x in self.x:
             self.nan.append(np.where(np.isnan(x))[0])
+
+        checkExistDir()
 
 
     def norm(self, base_time=0, method='default', save=False, mean_for_alignment=None):
