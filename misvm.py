@@ -12,7 +12,7 @@ dir_name = 'img-misvm'
 kernel = 'rbf'
 gamma = 0.002
 C = 7500
-experience = '2017'
+experience = '2018'
 positiveCsvFileName='hard-video.csv'
 negativeCsvFileName='easy-video.csv'
 path = './result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, C)
@@ -228,7 +228,7 @@ if __name__ == '__main__':
     #search_hyperparameter(ini=0.001, fin=0.002, step=0.0001, randomSampledTrainRatio=0.8)
     #gridsearch(params_grid=[{'gamma': [0.0012], 'C': [10, 50, 100, 500, 1000, 5000, 10000], 'kernel': ['rbf']}])
     main()
-    check_identification_func_max()
+    #check_identification_func_max()
     #cross_validation()
     #get_from_openpose()
     #exportFeatureVec2Csv()
