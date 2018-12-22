@@ -47,7 +47,7 @@ RUN conda install -n milpy35 -y opencv -c conda-forge
 RUN apt-get install -y libgl1-mesa-glx
 RUN conda install -n milpy35 -y scipy scikit-learn cvxopt
 RUN conda install -n milpy35 -y numpy=1.15.1
-RUN pip instakk matplotlib
+RUN pip install matplotlib
 ### User setting ###
 #ENV NB_USER kado
 # HOST_ID should be same as host's user id.
