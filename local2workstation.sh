@@ -27,6 +27,7 @@ fi
 declare -i WS=2
 EXTENSION="FALSE"
 INIT=false
+REINIT=false
 declare -a EXTENSIONPATH=()
 declare -a ALLPATH=()
 
