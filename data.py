@@ -4,6 +4,7 @@ from scipy.interpolate import interp1d
 import sys
 import cv2
 from scipy import fftpack
+import scipy.sparse as sp
 import itertools
 import os
 
@@ -332,7 +333,7 @@ class Data:
 
             # if error is occurred, raise attributeerror
         for key, feature in new_feature.items():
-            if self.frame_num == np.array(feature).shape[0]:
+            if (isinstance(feature, sp.coo_matrix) or isinstance(feature, np.ndarray) and feature.shape[0] == self.frame_num) or self.frame_num == len(feature):
                 feature_vectors[key] = feature
 
                 if delete_index is not None:
@@ -690,7 +691,7 @@ class Data:
 
         return features
 
-    def combination(self, selectedJoinyNum, dicimate):
+    def combination(self, selectedJoinyNum, dicimate, sparse=False):
         jointIds = [i for i in range(int(len(self.joint_name)/3))]
         jointComb = list(itertools.combinations(jointIds, selectedJoinyNum))
 
@@ -710,11 +711,18 @@ class Data:
         timeIndices = np.array(timeIndices)
         data = data[timeIndices]
 
-        feature = np.zeros((data.shape[0]*len(jointComb), 18*2))
-        jointComb = np.array(jointComb)
-        for n, comb in enumerate(jointComb):
-            feature[n*data.shape[0]:(n+1)*data.shape[0], comb] = data[:, comb]
-        feature[np.isnan(feature)] = 0.0
+        if sparse:
+            jointComb = np.array(jointComb)
+            data_ = np.array([data[:, comb] for comb in np.array(jointComb)]).flatten()
+            row_ = np.repeat(np.arange(timeIndices.size*len(jointComb)), selectedJoinyNum, axis=0).flatten()
+            col_ = np.repeat(jointComb, timeIndices.size, axis=0).flatten()
+            feature = sp.coo_matrix(data_, (row_, col_))
+        else:
+            feature = np.zeros((timeIndices.size * len(jointComb), 18 * 2))
+            jointComb = np.array(jointComb)
+            for n, comb in enumerate(jointComb):
+                feature[n * timeIndices.size:(n + 1) * timeIndices.size, comb] = data[:, comb]
+            feature[np.isnan(feature)] = 0.0
         features['combination'] = feature
 
         return features

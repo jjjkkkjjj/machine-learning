@@ -321,7 +321,7 @@ class MIL:
                         continue
 
                     data.mirror(mirrorFor='l')
-                    features = data.combination(3, self.dicimate)
+                    features = data.combination(3, self.dicimate, sparse=True)
                     bag = data.bag(None, **features)
                     self.bags.append(bag)
                     self.csvFilePaths.append(csvfilepath)
