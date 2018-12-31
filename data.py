@@ -698,27 +698,23 @@ class Data:
 
         # zeros[time][joint(*2)]
         zeros = np.zeros((self.x.shape[1], self.x.shape[0]*2)) # x.shape=[joint][time]
-        x, y = zeros.copy(), zeros.copy()
+        x, y = zeros, zeros.copy()
         x[:, np.arange(0, len(jointIds)*2, 2)] = self.x.T # even columns
         y[:, np.arange(1, len(jointIds)*2, 2)] = self.y.T # odd columns
         data = x + y
 
-        feature_ = []
-        for time in range(self.frame_num):
-            if time % dicimate == 0 or time == self.frame_num - 1:
-                for index, comb in enumerate(jointComb):
-                    nonzeroIndices = np.hstack((np.array(comb) * 2, np.array(comb) * 2 + 1))
-                    feature = np.zeros(data.shape[1])
-                    feature[nonzeroIndices] = data[time, nonzeroIndices]
-                    feature[np.isnan(feature)] = 0.0
-                    feature_.append(feature)
-        feature_ = np.array(feature_) # [time, dim]
-        features['combination'] = feature_
-        import gc
-        del data
-        del zeros
-        del x
-        del y
-        gc.collect()
+        # instance order is (comb1(t=1),...,comb1(t=T),comb2(t=1),...)
+        timeIndices = [i for i in range(0, self.frame_num, dicimate)]
+        if timeIndices[-1] != self.frame_num - 1:
+            timeIndices.append(self.frame_num - 1)
+        timeIndices = np.array(timeIndices)
+        data = data[timeIndices]
+
+        feature = np.zeros((data.shape[0]*len(jointComb), 18*2))
+        jointComb = np.array(jointComb)
+        for n, comb in enumerate(jointComb):
+            feature[n*data.shape[0]:(n+1)*data.shape[0], comb] = data[:, comb]
+        feature[np.isnan(feature)] = 0.0
+        features['combination'] = feature
 
         return features
