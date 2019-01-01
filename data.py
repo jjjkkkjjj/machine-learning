@@ -333,7 +333,7 @@ class Data:
 
             # if error is occurred, raise attributeerror
         for key, feature in new_feature.items():
-            if (isinstance(feature, sp.coo_matrix) or isinstance(feature, np.ndarray) and feature.shape[0] == self.frame_num) or self.frame_num == len(feature):
+            if self.frame_num == np.array(feature).shape[0]:
                 feature_vectors[key] = feature
 
                 if delete_index is not None:
@@ -360,6 +360,19 @@ class Data:
                          for i in range(self.x.shape[0] * 2)]
                         for time in range(self.x.shape[1])])
                         """
+
+        return Bag
+
+    def bag_sparse(self, **new_feature):
+        feature_vectors = {}
+
+        for key, feature in new_feature.items():
+            if isinstance(feature, sp.coo_matrix):
+                feature_vectors[key] = feature
+            else:
+                raise TypeError('feature type must be sparse matrix(coo)')
+
+        Bag = sp.hstack(tuple([feature for feature in feature_vectors.values()]))
 
         return Bag
 
@@ -716,7 +729,7 @@ class Data:
             data_ = np.array([data[:, comb] for comb in np.array(jointComb)]).flatten()
             row_ = np.repeat(np.arange(timeIndices.size*len(jointComb)), selectedJoinyNum, axis=0).flatten()
             col_ = np.repeat(jointComb, timeIndices.size, axis=0).flatten()
-            feature = sp.coo_matrix(data_, (row_, col_))
+            feature = sp.coo_matrix((data_, (row_, col_)), shape=(timeIndices.size*len(jointComb), 18*2))
         else:
             feature = np.zeros((timeIndices.size * len(jointComb), 18 * 2))
             jointComb = np.array(jointComb)
