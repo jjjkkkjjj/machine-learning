@@ -321,8 +321,9 @@ class MIL:
                         continue
 
                     data.mirror(mirrorFor='l')
-                    features = data.combination(3, self.dicimate, sparse=True)
-                    bag = data.bag_sparse(**features)
+                    features = data.combination(2, self.dicimate, sparse=False)
+                    #bag = data.bag_sparse(**features)
+                    bag = data.bag(None, **features)
                     self.bags.append(bag)
                     self.csvFilePaths.append(csvfilepath)
 
@@ -539,7 +540,8 @@ class MIL:
 
         return estimators
 
-    def leaveOnePersonOut(self, estimator, resultSuperDirPath, n_jobs=8, trainAcc=False):
+    # resultVis = {}
+    def leaveOnePersonOut(self, estimator, resultSuperDirPath, n_jobs=8, trainAcc=False, resultVis=None):
         personList = list(set(self.persons))
 
         mkdir(resultSuperDirPath)
@@ -547,28 +549,29 @@ class MIL:
         predictedLabelsDict = {}
         corresctLabelsDict = {}
         trainAccuracies = {}
+        resultVisualization = {}
         for index in range(0, len(personList), n_jobs):
             threadList = []
 
             def job(threadIndex):
-                testIndeices = np.array([i for i, person in enumerate(self.persons) if person == personList[threadIndex]])
-                if testIndeices.size == 0:
+                testIndices = np.array([i for i, person in enumerate(self.persons) if person == personList[threadIndex]])
+                if testIndices.size == 0:
                     predictedLabelsDict[str(threadIndex)] = []
                     corresctLabelsDict[str(threadIndex)] = []
                     if trainAcc:
                         trainAccuracies[str(threadIndex)] = "Not calculated"
                     return
-                trainIndices = np.setdiff1d(np.arange(0, len(self.bags)), testIndeices)
+                trainIndices = np.setdiff1d(np.arange(0, len(self.bags)), testIndices)
 
                 trainBags = [bag for index, bag in enumerate(self.bags) if index in trainIndices]
                 trainLabels = np.array(self.labels)[trainIndices]
-                testBags = [bag for index, bag in enumerate(self.bags) if index in testIndeices]
-                testLabels =  np.array(self.labels)[testIndeices]
+                testBags = [bag for index, bag in enumerate(self.bags) if index in testIndices]
+                testLabels =  np.array(self.labels)[testIndices]
 
                 estimator_ = copy.deepcopy(estimator)
                 estimator_.fit(trainBags, trainLabels)
 
-                predicts = estimator_.predict(testBags, instancePrediction=False)
+                predicts, inst_preds = estimator_.predict(testBags, instancePrediction=True)
 
                 predictedLabelsDict[str(threadIndex)] = np.sign(predicts)
                 corresctLabelsDict[str(threadIndex)] = testLabels
@@ -580,6 +583,17 @@ class MIL:
                 if trainAcc:
                     predictedTrains = estimator_.predict(trainBags, instancePrediction=False)
                     trainAccuracies[str(threadIndex)] = np.average(np.sign(predictedTrains) == trainLabels) * 100
+
+                if resultVis is not None and isinstance(resultVis, str):
+                    ini = 0
+                    time_series_data = []
+                    for bag_i in testIndices:
+                        fin = ini + len(self.bags[bag_i])
+                        time_series_data.append(np.array(eval('{0}[ini:fin]'.format(resultVis))))
+                        ini = fin
+                    resultVisualization[str(threadIndex)] = {'tsd': time_series_data, 'indices': testIndices}
+                else:
+                    raise ValueError('resultVis must be str, \'predict\',\'estimator_.w_\', etc.')
 
             lastThreadIndex = index + n_jobs
             if lastThreadIndex > len(personList):
@@ -619,6 +633,14 @@ class MIL:
 
             print(self.info, file=f)
 
+        if resultVis is not None:
+            time_series_data = []
+            indices = []
+            for visData in resultVisualization.values():
+                time_series_data.extend(visData['tsd'])
+                indices.extend(visData['indices'])
+            self.visualization(time_series_data, indices, resultSuperDirPath=resultSuperDirPath)
+
     def read_LOPO(self, resultSuperDirPath, reload=False):
         estimatorPaths = sorted(glob.glob(resultSuperDirPath + '/leave-one-person-out/*.pkl.cmp'))
         estimators = []
@@ -631,10 +653,10 @@ class MIL:
                 filename = os.path.basename(estimatorPath)
                 filedPerson = int(filename.split('.')[0].split('-')[1])
 
-                testIndeices = np.array([i for i, person in enumerate(self.persons) if person == filedPerson])
+                testIndices = np.array([i for i, person in enumerate(self.persons) if person == filedPerson])
 
-                predictedLabel = estimator.predict([bag for index, bag in enumerate(self.bags) if index in testIndeices], instancePrediction=False)
-                p += np.sum(np.sign(predictedLabel) == np.array(self.labels)[testIndeices])
+                predictedLabel = estimator.predict([bag for index, bag in enumerate(self.bags) if index in testIndices], instancePrediction=False)
+                p += np.sum(np.sign(predictedLabel) == np.array(self.labels)[testIndices])
 
         if reload:
             print('accuracy: {0}'.format(float(p) * 100/len(self.labels)))

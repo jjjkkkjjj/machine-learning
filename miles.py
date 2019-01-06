@@ -114,9 +114,13 @@ def leave_one_out(n_jobs=8):
     estimator = MILES(lamb=lamb, mu=mu, similarity=kernel, gamma=gamma, C=C, verbose=True)
     mil.leaveOneOut(estimator=estimator, resultSuperDirPath=path, n_jobs=n_jobs, trainAcc=True)
 
-def leave_one_person_out(n_jobs=8):
+def leave_one_person_out(n_jobs=8, resultVis=False):
+    if resultVis:
+        resultvis = 'estimator_.w_'
+    else:
+        resultvis = None
     estimator = MILES(lamb=lamb, mu=mu, similarity=kernel, gamma=gamma, C=C, verbose=True)
-    mil.leaveOnePersonOut(estimator=estimator, resultSuperDirPath=path, n_jobs=n_jobs, trainAcc=True)
+    mil.leaveOnePersonOut(estimator=estimator, resultSuperDirPath=path, n_jobs=n_jobs, trainAcc=True, resultVis=resultvis)
 
 def plot_confusion_matrix(cm,
                           target_names,

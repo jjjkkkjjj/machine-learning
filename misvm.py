@@ -7,11 +7,11 @@ from frame_detector import frame_detector, bag2video, plusvideo
 # activate milpy35
 from mil import MIL
 
-method = 'img'
-dir_name = 'img-misvm'
+method = 'combination'
+dir_name = 'combination-misvm'
 kernel = 'rbf'
-gamma = 0.002
-C = 7500
+gamma = 0.0012
+C = 4500
 experience = '2018'
 positiveCsvFileName='hard-video.csv'
 negativeCsvFileName='easy-video.csv'
@@ -20,13 +20,13 @@ dicimate = 4
 
 mil = MIL(method=method, experience=experience, dirName=dir_name, estimatorName='misvm')
 mil.setData(positiveCsvFileName=positiveCsvFileName, negativeCsvFileName=negativeCsvFileName,
-            saveMotionTmplate=True, dicimate=dicimate, videoExtension='mp4', csvExtension='csv')
+            saveMotionTmplate=False, dicimate=dicimate, videoExtension='mp4', csvExtension='csv')
 #mil.importCsv2Feature(positiveCsvFileName, negativeCsvFileName, dicimate, data='all')
 
 
-
 def main():# read hard and easy
-    estimator = misvm.miSVM(kernel=kernel, gamma=gamma, C=C, verbose=True, max_iters=100)
+    #estimator = misvm.miSVM(kernel=kernel, gamma=gamma, C=C, verbose=True, max_iters=100)
+    estimator = misvm.miPSVM(feature=kernel, gamma=gamma, C=C, verbose=True, max_iters=100, n_components=36*3, sparse=['P'])
     mil.train(estimator=estimator, resultSuperDirPath=path)
 
 def check_identification_func_max():
@@ -93,9 +93,13 @@ def leave_one_out(n_jobs=8):
     estimator = misvm.miSVM(kernel=kernel, gamma=gamma, C=C, verbose=True, max_iters=200)
     mil.leaveOneOut(estimator=estimator, resultSuperDirPath=path, n_jobs=n_jobs, trainAcc=True)
 
-def leave_one_person_out(n_jobs=8):
+def leave_one_person_out(n_jobs=8, resultVis=False):
+    if resultVis:
+        resultvis = 'inst_preds'
+    else:
+        resultvis = None
     estimator = misvm.miSVM(kernel=kernel, gamma=gamma, C=C, verbose=True, max_iters=200)
-    mil.leaveOnePersonOut(estimator=estimator, resultSuperDirPath=path, n_jobs=n_jobs, trainAcc=True)
+    mil.leaveOnePersonOut(estimator=estimator, resultSuperDirPath=path, n_jobs=n_jobs, trainAcc=True, resultVis=resultvis)
 
 def plot_confusion_matrix(cm,
                           target_names,
@@ -234,7 +238,7 @@ if __name__ == '__main__':
     #exportFeatureVec2Csv()
     #visualization()
     #leave_one_out(n_jobs=14)
-    #leave_one_person_out(n_jobs=10)
+    #leave_one_person_out(n_jobs=10, resultVis=True)
     """
     # use thread
     estimators = []

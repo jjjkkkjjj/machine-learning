@@ -724,6 +724,7 @@ class Data:
         timeIndices = np.array(timeIndices)
         data = data[timeIndices]
 
+        data[np.isnan(data)] = 0
         if sparse:
             jointComb = np.array(jointComb)
             data_ = np.array([data[:, comb] for comb in np.array(jointComb)]).flatten()
@@ -735,7 +736,7 @@ class Data:
             jointComb = np.array(jointComb)
             for n, comb in enumerate(jointComb):
                 feature[n * timeIndices.size:(n + 1) * timeIndices.size, comb] = data[:, comb]
-            feature[np.isnan(feature)] = 0.0
+            #feature[np.isnan(feature)] = 0.0
         features['combination'] = feature
 
         return features
