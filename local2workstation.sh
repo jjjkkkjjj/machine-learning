@@ -119,6 +119,7 @@ if $INIT; then
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/*.py kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/Dockerfile* kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/*.sh kado@192.168.1.$WS:/home/kado/machine-learning/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/*.yaml kado@192.168.1.$WS:/home/kado/machine-learning/
     exit 1
 fi
 
@@ -130,6 +131,7 @@ if $REINIT; then
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/*.py kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/Dockerfile* kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/*.sh kado@192.168.1.$WS:/home/kado/machine-learning/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/*.yaml kado@192.168.1.$WS:/home/kado/machine-learning/
 fi
 
 if [ ! ${#param[@]} = 0 ]; then

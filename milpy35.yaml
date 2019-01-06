@@ -56,7 +56,7 @@ dependencies:
 - conda-forge::openh264=1.7.0=0
 - conda-forge::openssl=1.0.2p=h470a237_0
 - conda-forge::pcre=8.41=hfc679d8_3
-- conda-forge::pip=18.0=py35_1
+- conda-forge::pip=18.0=py35_1001
 - conda-forge::pixman=0.34.0=h470a237_3
 - conda-forge::pthread-stubs=0.4=h470a237_1
 - conda-forge::python=3.5.5=h5001a0f_2

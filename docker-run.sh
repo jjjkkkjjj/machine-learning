@@ -11,5 +11,5 @@ bash ./docker-build.sh $fileimage $filename
 
 # run
 #docker run --rm -it --name=kado -v $(pwd):/workdir -w /workdir $fileimage "$@"
-docker run --rm -it --name=kado -v $(pwd):/workdir -w /workdir $fileimage
+docker run --rm -it --name=kado -v $(pwd):/workdir -w /workdir $fileimage #${@:3}
 

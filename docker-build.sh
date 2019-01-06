@@ -8,5 +8,5 @@ fi
 echo "building dockefile..."
 filename=$2
 fileimage=$1
-docker build -t $fileimage -f $filename .
-#docker build --build-arg  HOST_UID=$(id -u) -t $fileimage -f $filename .
+docker build -t $fileimage -f $filename . #${@:3}
+#docker build --build-arg  HOST_UID=$(id -u) -t $fileimage -f $filename . 

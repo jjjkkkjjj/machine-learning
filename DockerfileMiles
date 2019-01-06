@@ -13,7 +13,7 @@ RUN apt-get -y install zlib1g-dev \
                        libxslt-dev \
                        libncurses5-dev \
                        libncursesw5-dev
-
+RUN apt-get install -y libgl1-mesa-dev
 
 # pyenv のインストール
 RUN git clone git://github.com/yyuu/pyenv.git /root/.pyenv
@@ -27,28 +27,12 @@ ENV ANACONDA_VER 2.2.0
 RUN pyenv install anaconda3-$ANACONDA_VER
 RUN pyenv global anaconda3-$ANACONDA_VER
 ENV PATH $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/bin:$PATH
-RUN conda create -n milpy35 python=3.5 anaconda
+RUN conda update -y conda
+COPY milpy35.yaml /tmp/milpy35.yaml
+RUN conda env create -f /tmp/milpy35.yaml -p $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/envs/milpy35
+
 RUN echo 'alias activate="source $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/bin/activate"' >> .bashrc
 
-# ライブラリのアップデート
-RUN conda update -y conda
-RUN pip install --upgrade pip
- 
-# install opencv
-RUN conda install -y ffmpeg
-#RUN conda config --remove channels conda-forge
-RUN conda config --add channels conda-forge  
-RUN conda install -y opencv
-
-RUN conda install -n milpy35 -y ffmpeg
-#RUN conda config --remove channels conda-forge
-#RUN conda config -n milpy35 --add channels conda-forge  
-RUN conda install -n milpy35 -y opencv -c conda-forge
-RUN apt-get install -y libgl1-mesa-glx
-RUN conda install -n milpy35 -y scipy scikit-learn cvxopt
-RUN conda install -n milpy35 -y numpy=1.15.1
-RUN source activate milpy35
-RUN pip install matplotlib
 ### User setting ###
 #ENV NB_USER kado
 # HOST_ID should be same as host's user id.
