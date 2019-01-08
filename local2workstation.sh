@@ -116,6 +116,7 @@ if $INIT; then
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/2d-data/* kado@192.168.1.$WS:/home/kado/machine-learning/2d-data/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/2d-video/*  kado@192.168.1.$WS:/home/kado/machine-learning/2d-video/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/video/*  kado@192.168.1.$WS:/home/kado/machine-learning/video/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/bag/joint2img/motempl/*  kado@192.168.1.$WS:/home/kado/machine-learning/bag/joint2img/motempl/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/*.py kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/Dockerfile* kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/*.sh kado@192.168.1.$WS:/home/kado/machine-learning/
@@ -128,6 +129,7 @@ if $REINIT; then
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/2d-data/* kado@192.168.1.$WS:/home/kado/machine-learning/2d-data/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/2d-video/*  kado@192.168.1.$WS:/home/kado/machine-learning/2d-video/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/video/*  kado@192.168.1.$WS:/home/kado/machine-learning/video/
+    rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' ${misvm_dir}/bag/joint2img/motempl/*  kado@192.168.1.$WS:/home/kado/machine-learning/bag/joint2img/motempl/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/*.py kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/Dockerfile* kado@192.168.1.$WS:/home/kado/machine-learning/
     rsync -arv -e 'ssh -i ~/.ssh/id_rsa.pub' --delete ${misvm_dir}/*.sh kado@192.168.1.$WS:/home/kado/machine-learning/

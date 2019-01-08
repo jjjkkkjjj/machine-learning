@@ -27,12 +27,24 @@ ENV ANACONDA_VER 2.2.0
 RUN pyenv install anaconda3-$ANACONDA_VER
 RUN pyenv global anaconda3-$ANACONDA_VER
 ENV PATH $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/bin:$PATH
+#RUN conda create -n milpy35 python=3.5 anaconda
+#RUN echo 'alias activate="source $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/bin/activate"' >> .bashrc
+
 RUN conda update -y conda
 COPY milpy35.yaml /tmp/milpy35.yaml
 RUN conda env create -f /tmp/milpy35.yaml -p $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/envs/milpy35
 
 RUN echo 'alias activate="source $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/bin/activate"' >> .bashrc
 
+#RUN pip install --upgrade pip
+#RUN conda install -n milpy35 -y ffmpeg
+#UN conda install -n milpy35 -y opencv=3.4.1 numpy=1.15.1 scipy scikit-learn cvxopt -c conda-forge
+#RUN apt-get install -y libgl1-mesa-glx
+
+#RUN source $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/envs/milpy35/bin/activate milpy35
+#RUN pip install --upgrade pip
+#RUN pip install matplotlib
+#RUN $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/envs/milpy35/bin/pip install matplotlib
 ### User setting ###
 #ENV NB_USER kado
 # HOST_ID should be same as host's user id.
