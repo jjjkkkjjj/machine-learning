@@ -262,6 +262,9 @@ data/*
 video/*
 !.gitkeep
 
+workstation/*
+!.gitkeep
+
 MIL
 
 # for mac
