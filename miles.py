@@ -7,7 +7,7 @@ from mil import MIL
 import cv2
 
 method = 'img'
-dir_name = 'img-miles'
+dir_name = 'normedimg-miles'
 kernel = 'rbf'
 lamb = 0.7
 mu = 0.5
@@ -222,7 +222,7 @@ if __name__ == '__main__':
     #     'lamb': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 'similarity': ['rbf']}])
     #check_important_feature_frame()
     #cross_validation()
-    visualization()
+    #visualization()
     #leave_one_out(n_jobs=12)
     #leave_one_person_out(n_jobs=10)
 
@@ -263,12 +263,11 @@ if __name__ == '__main__':
     predicted = clf.predict(newbags, instancePrediction=False)
     print(np.average(np.sign(predicted) == np.array(newlabels))*100)
     """
-    """
-    L = [0.5, 0.55 ,0.6, 0.65, 0.7]
+
+    L = [0.2, 0.4, 0.6, 0.8]
     for l in L:
         lamb = l
         path = './result/{0}/{1}/g{2}/mu{3}lamb{4}'.format(experience, dir_name, gamma, mu, lamb)
-        #leave_one_person_out(n_jobs=10)
+        leave_one_person_out(n_jobs=10, resultVis=False)
         #main()
         check_important_feature_frame()
-    """

@@ -323,7 +323,7 @@ class Data:
 
     # return bag [time][feature]
     # feature's shape is (time, )
-    def bag(self, delete_index, *args, **new_feature):
+    def bag(self, delete_index, *args, norm=False, **new_feature):
         feature_vectors = {}
 
         for var in args:
@@ -348,6 +348,8 @@ class Data:
 
 
         Bag = np.hstack(tuple([feature for feature in feature_vectors.values()]))
+        if norm:
+            Bag = Bag / np.max(np.linalg.norm(Bag, axis=1))
         """
         exit()
         return
@@ -643,7 +645,8 @@ class Data:
             for index, img in enumerate(imgs[1:]):
                 color_diff = cv2.absdiff(img, img_pre)
 
-                timestamp = cv2.getTickCount() / cv2.getTickFrequency()
+                #timestamp = cv2.getTickCount() / cv2.getTickFrequency()
+                timestamp = time.clock()
                 #print(timestamp)
                 #4256.309012027
 
@@ -679,7 +682,7 @@ class Data:
         cv2.destroyAllWindows()
         return newimgs
 
-    def img2featurevector(self, imgs, dwidth=16, dheight=16):
+    def img2featurevector(self, imgs, dwidth=16, dheight=16, norm=False):
         if not isinstance(dwidth, int) or not isinstance(dheight, int):
             raise TypeError('dwidth and dheight must be int')
 
@@ -696,11 +699,20 @@ class Data:
 
         # [split][time][dim]
         features_ = np.array(features_).transpose((1,0,2))
+
+
         #print(np.max(features_), np.min(features_))
+        features_ = np.hstack((feature for feature in features_))
+        if norm:
+            n = np.linalg.norm(features_, axis=1)[:, np.newaxis]
+            n[n == 0] = 1
+            features_ =  features_ / n
+        features = {"img": features_}
+        """
         features = {}
         for split_index, feature in enumerate(features_):
             features[str(int(split_index/dheight)) + str(int(split_index%dwidth))] = feature
-
+        """
 
         return features
 

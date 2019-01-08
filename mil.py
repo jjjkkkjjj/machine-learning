@@ -291,8 +291,8 @@ class MIL:
                     imgs = data.joint2img(1, save=False)
 
                     imgs = data.motion_history(imgs, dicimate, save=saveMotionTmplate)
-                    features = data.img2featurevector(imgs)
-                    bag = data.bag(None, **features)
+                    features = data.img2featurevector(imgs, norm=False)
+                    bag = data.bag(None, norm=False, **features)
                     self.bags.append(bag)
                     self.csvFilePaths.append(csvfilepath)
 
@@ -592,7 +592,7 @@ class MIL:
                         time_series_data.append(np.array(eval('{0}[ini:fin]'.format(resultVis))))
                         ini = fin
                     resultVisualization[str(threadIndex)] = {'tsd': time_series_data, 'indices': testIndices}
-                else:
+                elif resultVis is not None:
                     raise ValueError('resultVis must be str, \'predict\',\'estimator_.w_\', etc.')
 
             lastThreadIndex = index + n_jobs

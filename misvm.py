@@ -7,11 +7,11 @@ from frame_detector import frame_detector, bag2video, plusvideo
 # activate milpy35
 from mil import MIL
 
-method = 'combination'
-dir_name = 'combination-misvm'
-kernel = 'rbf'
+method = 'img'
+dir_name = 'img-linear-misvm'
+kernel = 'linear'
 gamma = 0.0012
-C = 4500
+C = 1500
 experience = '2018'
 positiveCsvFileName='hard-video.csv'
 negativeCsvFileName='easy-video.csv'
@@ -25,8 +25,8 @@ mil.setData(positiveCsvFileName=positiveCsvFileName, negativeCsvFileName=negativ
 
 
 def main():# read hard and easy
-    #estimator = misvm.miSVM(kernel=kernel, gamma=gamma, C=C, verbose=True, max_iters=100)
-    estimator = misvm.miPSVM(feature=kernel, gamma=gamma, C=C, verbose=True, max_iters=100, n_components=36*3, sparse=['P'])
+    estimator = misvm.miSVM(kernel=kernel, gamma=gamma, C=C, verbose=True, max_iters=100)
+    #estimator = misvm.miPSVM(feature=kernel, gamma=gamma, C=C, verbose=True, max_iters=100, n_components=36*3, sparse=['P'])
     mil.train(estimator=estimator, resultSuperDirPath=path)
 
 def check_identification_func_max():
@@ -231,14 +231,14 @@ def visualization():
 if __name__ == '__main__':
     #search_hyperparameter(ini=0.001, fin=0.002, step=0.0001, randomSampledTrainRatio=0.8)
     #gridsearch(params_grid=[{'gamma': [0.0012], 'C': [10, 50, 100, 500, 1000, 5000, 10000], 'kernel': ['rbf']}])
-    main()
+    #main()
     #check_identification_func_max()
     #cross_validation()
     #get_from_openpose()
     #exportFeatureVec2Csv()
     #visualization()
     #leave_one_out(n_jobs=14)
-    #leave_one_person_out(n_jobs=10, resultVis=True)
+    #leave_one_person_out(n_jobs=10, resultVis=False)
     """
     # use thread
     estimators = []
@@ -249,14 +249,14 @@ if __name__ == '__main__':
         pathes.append('./result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, cc))
     mil.pluralParametersTrain(estimators, pathes=pathes, n_jobs=10)
     """
-    """
+
     # no thread
-    CC = [1000, 3000, 3500, 4000, 5000]
+    CC = [500, 1000, 3500, 5000]
     for cc in CC:
         path = './result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, cc)
         C = cc
-        #leave_one_person_out()
+        leave_one_person_out(n_jobs=10, resultVis=False)
         #result_leave_one_person_out()
-        check_identification_func_max()
-    """
+        #check_identification_func_max()
+
 
