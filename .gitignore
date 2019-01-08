@@ -262,8 +262,6 @@ data/*
 video/*
 !.gitkeep
 
-workstation/*
-!.gitkeep
 
 MIL
 

@@ -251,7 +251,7 @@ if __name__ == '__main__':
     """
 
     # no thread
-    CC = [500, 1000, 3500, 5000]
+    CC = [1, 25, 100, 250]
     for cc in CC:
         path = './result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, cc)
         C = cc
