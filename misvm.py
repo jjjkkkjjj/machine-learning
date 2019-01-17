@@ -7,11 +7,11 @@ from frame_detector import frame_detector, bag2video, plusvideo
 # activate milpy35
 from mil import MIL
 
-method = 'img'
-dir_name = 'img-linear-misvm'
+method = 'combination'
+dir_name = 'combination-linear-misvm'
 kernel = 'linear'
 gamma = 0.0012
-C = 1500
+C = 100
 experience = '2018'
 positiveCsvFileName='hard-video.csv'
 negativeCsvFileName='easy-video.csv'
@@ -238,7 +238,7 @@ if __name__ == '__main__':
     #exportFeatureVec2Csv()
     #visualization()
     #leave_one_out(n_jobs=14)
-    #leave_one_person_out(n_jobs=10, resultVis=False)
+    leave_one_person_out(n_jobs=10, resultVis=False)
     """
     # use thread
     estimators = []
@@ -249,7 +249,7 @@ if __name__ == '__main__':
         pathes.append('./result/{0}/{1}/g{2}/c{3}'.format(experience, dir_name, gamma, cc))
     mil.pluralParametersTrain(estimators, pathes=pathes, n_jobs=10)
     """
-
+    """
     # no thread
     CC = [1, 25, 100, 250]
     for cc in CC:
@@ -258,5 +258,5 @@ if __name__ == '__main__':
         leave_one_person_out(n_jobs=10, resultVis=False)
         #result_leave_one_person_out()
         #check_identification_func_max()
-
+    """
 

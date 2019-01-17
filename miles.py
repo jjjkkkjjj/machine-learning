@@ -270,4 +270,4 @@ if __name__ == '__main__':
         path = './result/{0}/{1}/g{2}/mu{3}lamb{4}'.format(experience, dir_name, gamma, mu, lamb)
         leave_one_person_out(n_jobs=10, resultVis=False)
         #main()
-        check_important_feature_frame()
+        #check_important_feature_frame()
