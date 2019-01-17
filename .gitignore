@@ -235,9 +235,6 @@ pip-selfcheck.json
 # ignore specified files
 .idea/
 
-misvm/*
-!.gitkeep
-
 2d-data/*
 !.gitkeep
 
@@ -248,8 +245,7 @@ bag/*
 !.gitkeep
 
 documents/
-old-data/
-video/
+
 temporal_files/*
 !.gitkeep
 
@@ -262,8 +258,11 @@ data/*
 video/*
 !.gitkeep
 
+vis-data/result/*
+!.gitkeep
 
 MIL
+misvm
 
 # for mac
 *.DS_Store
