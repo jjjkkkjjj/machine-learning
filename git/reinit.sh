@@ -75,25 +75,34 @@ done
 
 
 if [[ -L ../MIL ]]; then
-   echo "remove MIL file"
-   unlink ../MIL
+    echo "remove MIL file"
+    unlink ../MIL
 fi
 if [[ -L ../misvm ]]; then
-   echo "remove misvm file"
-   unlink ../misvm
+    echo "remove misvm file"
+    unlink ../misvm
 fi
 
-echo $SET
+
 if $SET; then
-   echo "make a symboliclink to MIL"
-   ln -s -r ${SETPATH[0]} ../
-   echo "make a symboliclink to misvm"
-   ln -s -r ${SETPATH[1]} ../
+    if [ "$(uname)" == 'Darwin' ]; then
+        echo "note that you must set absolute path!"
+        echo "make a symboliclink to MIL"
+        ln -s ${SETPATH[0]} ../
+        echo "make a symboliclink to misvm"
+        ln -s ${SETPATH[1]} ../
+    else
+        echo "make a symboliclink to MIL"
+        ln -s -r ${SETPATH[0]} ../
+        echo "make a symboliclink to misvm"
+        ln -s -r ${SETPATH[1]} ../
+    fi
 else
-   echo "make a symboliclink to MIL"
-   ln -s -r ../../MIL/MIL ../
-   echo "make a symboliclink to misvm"
-   ln -s -r ../../misvm ../
+    echo "make a symboliclink to MIL"
+    cd ../../
+    ln -s $(pwd)/MIL/MIL machine-learning/
+    echo "make a symboliclink to misvm"
+    ln -s $(pwd)/misvm machine-learning/
 fi
 
 exit 1
