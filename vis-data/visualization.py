@@ -5,7 +5,8 @@ import cv2
 
 def visualization(filepath):
     filepathes = sorted(glob.glob(filepath))
-    for filepath
+    for filepath in filepathes:
+
 
 
 if __name__ == '__main__':
