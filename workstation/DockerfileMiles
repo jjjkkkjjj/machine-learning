@@ -40,6 +40,7 @@ RUN echo 'alias activate="source $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/bi
 COPY pipreq.txt /tmp/pipreq.txt
 RUN $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/envs/milpy35/bin/pip install -r /tmp/pipreq.txt
 
+#RUN /bin/bash -c "source $PYENV_ROOT/versions/anaconda3-$ANACONDA_VER/envs/milpy35/bin/activate milpy35"
 #RUN pip install --upgrade pip
 #RUN conda install -n milpy35 -y ffmpeg
 #UN conda install -n milpy35 -y opencv=3.4.1 numpy=1.15.1 scipy scikit-learn cvxopt -c conda-forge
