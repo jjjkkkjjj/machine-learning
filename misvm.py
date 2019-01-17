@@ -7,9 +7,9 @@ from frame_detector import frame_detector, bag2video, plusvideo
 # activate milpy35
 from mil import MIL
 
-method = 'combination'
-dir_name = 'combination-linear-misvm'
-kernel = 'linear'
+method = 'img'
+dir_name = 'img-misvm'
+kernel = 'rbf'
 gamma = 0.0012
 C = 100
 experience = '2018'
