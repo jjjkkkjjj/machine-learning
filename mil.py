@@ -12,6 +12,10 @@ from parameter_tune import tune
 import copy
 import threading
 import cv2
+import platform
+if platform.system() == 'Darwin':
+    import matplotlib
+    matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
