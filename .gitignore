@@ -245,7 +245,7 @@ bag/*
 !.gitkeep
 
 documents/
-
+old-data/
 temporal_files/*
 !.gitkeep
 
