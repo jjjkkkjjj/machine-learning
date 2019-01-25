@@ -258,7 +258,7 @@ data/*
 video/*
 !.gitkeep
 
-vis-data/result/*
+vis_data/result/*
 !.gitkeep
 
 MIL

@@ -11,7 +11,7 @@ method = 'img'
 dir_name = 'img-misvm'
 kernel = 'rbf'
 gamma = 0.0012
-C = 100
+C = 250
 experience = '2018'
 positiveCsvFileName='hard-video.csv'
 negativeCsvFileName='easy-video.csv'
@@ -228,6 +228,9 @@ def visualization():
     """
     mil.visualization(ident_func_results, indices, resultSuperDirPath=path)
 
+def dataVisualization():
+    mil.dataVisualization(vis_method='t-sne', permode='label')
+
 if __name__ == '__main__':
     #search_hyperparameter(ini=0.001, fin=0.002, step=0.0001, randomSampledTrainRatio=0.8)
     #gridsearch(params_grid=[{'gamma': [0.0012], 'C': [10, 50, 100, 500, 1000, 5000, 10000], 'kernel': ['rbf']}])
@@ -238,7 +241,8 @@ if __name__ == '__main__':
     #exportFeatureVec2Csv()
     #visualization()
     #leave_one_out(n_jobs=14)
-    leave_one_person_out(n_jobs=10, resultVis=False)
+    #leave_one_person_out(n_jobs=10, resultVis=False)
+    dataVisualization()
     """
     # use thread
     estimators = []

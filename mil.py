@@ -17,6 +17,7 @@ if platform.system() == 'Darwin':
     import matplotlib
     matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+from vis_data import visualization
 
 
 def mkdir(resultSuperDirPath):
@@ -366,6 +367,42 @@ class MIL:
 
         alignInfo = {'x': np.nanmean(X), 'y': np.nanmean(Y), 'joint': standardJointNumber, 'frame': standardFrame}
         return alignInfo
+
+    def dataVisualization(self, vis_method='t-sne', permode='person'):
+        if self.method in ['img']:
+            # mode
+            imgsDict = {}
+
+            imgsize = int(np.sqrt(self.bags[0].shape[1]))
+            if permode == 'label':
+                #labels = ['pos', 'neg']
+                posargs = np.where(self.labels == 1)[0]
+                imgsDict['pos'] = []
+                for posarg in posargs:
+                    imgsDict['pos'].append(
+                        self.bags[posarg].reshape(self.bags[posarg].shape[0], imgsize, imgsize))
+
+                negargs = np.where(self.labels == -1)[0]
+                imgsDict['neg'] = []
+                for negarg in negargs:
+                    imgsDict['neg'].append(
+                        self.bags[negarg].reshape(self.bags[negarg].shape[0], imgsize, imgsize))
+
+
+            elif permode == 'person':
+                personList = list(set(self.persons))
+                imgsDict = {label: [] for label in personList}
+                for i, person in enumerate(self.persons):
+                    imgsDict[person].append(self.bags[i])
+
+            else:
+                raise NameError('{0} is invalid permode'.format(permode))
+
+
+            visualization.visualization(imgsDict=imgsDict, method=vis_method, experience=self.experience, permode=permode,
+                          positiveCsvFileName=self.info['positiveCsvFileName'], negativeCsvFileName=self.info['negativeCsvFileName'])
+        else:
+            raise NameError('{0} is undefined method in this function'.format(self.method))
 
     def train(self, estimator, resultSuperDirPath, sampleNumPerLabel=0, customIndices=None):
         mkdir(resultSuperDirPath)
