@@ -18,7 +18,7 @@ positiveCsvFileName='hard-video.csv'
 negativeCsvFileName='easy-video.csv'
 extension = '.mp4'
 permode = 'person' # person or label
-dirpath = './result'
+dirpath = 'result/'
 """
 
 def visualization(imgsDict=None, **kwargs):
@@ -29,13 +29,14 @@ def visualization(imgsDict=None, **kwargs):
     negativeCsvFileName = 'easy-video.csv'
     extension = '.mp4'
     permode = 'label'  # person or label
-    dirpath = './result'
+    dirpath = 'result/'
 
     for key in list(kwargs.keys()):
         exec('{0} = kwargs.pop(key, {0})'.format(key))
 
     # make result directory
-    dirpath = os.path.join(dirpath, method)
+    dirpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                           dirpath, method)
     if not os.path.isdir(dirpath):
         os.makedirs(dirpath)
 
@@ -167,7 +168,10 @@ def tsne(imgsDict, dirpath):
         '\rcalculate t-sne values, will save to {0}'.format(dirpath))
     sys.stdout.flush()
     perplexities = [5, 30, 50]
-    for perplexity in perplexities:
+    for i, perplexity in enumerate(perplexities):
+        sys.stdout.write(
+            '\rcalculate perplexity = {0}, will save to {1} ...{2}/{3}'.format(perplexity, dirpath, i + 1, len(perplexities)))
+        sys.stdout.flush()
         tsne_ = TSNE(n_components=2, random_state=0, perplexity=perplexity)
 
         X_reduced = tsne_.fit_transform(X)
