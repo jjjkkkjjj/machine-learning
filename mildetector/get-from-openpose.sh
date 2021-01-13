@@ -8,5 +8,5 @@ fi
 video_path=$1
 keypoint_path=$2
 
-cd /media/junkado/hdd3tb/openpose
-./build/examples/openpose/openpose.bin --video $video_path --write_keypoint_json ${keypoint_path} --no_display
+cd /opt/software/openpose
+openpose.bin --video $video_path --write_json ${keypoint_path} --display 0  --render_pose 0

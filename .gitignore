@@ -249,6 +249,9 @@ old-data/
 temporal_files/*
 !.gitkeep
 
+temporal_images/*
+!.gitkeep
+
 result/*
 !.gitkeep
 

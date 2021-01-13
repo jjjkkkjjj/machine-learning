@@ -6,7 +6,8 @@
 conda create -n mildetector python=3.5
 conda activate mildetector
 conda install -y ffmpeg 
-conda install -y opencv=3.4.1 numpy=1.15.1 scipy scikit-learn cvxopt matplotlib -c conda-forge
+conda install -y numpy=1.15.1 scipy scikit-learn cvxopt pillow ipywidgets matplotlib -c conda-forge
+conda install -y opencv
 
 # easy version
 # pip install -e git+https://github.com/garydoranjr/misvm.git#egg=misvm
