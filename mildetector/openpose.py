@@ -8,6 +8,9 @@ import cv2
 import numpy as np
 import shutil
 
+from .base import Base
+from .utils import show_video
+
 # see https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
 bone_lines_COCO = [
     [1, 0],[1, 2],[2, 3],[3, 4],[1, 5],[5, 6],[6, 7],
@@ -25,29 +28,33 @@ bone_lines_BODY_25 = [
 
 bonetypes_list = ['BODY_25', 'COCO']
 
-class OpenPose:
+class OpenPoseBase(Base):
+    def __init__(self, bonetype, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.bonetype = check_bonetype(bonetype)
+
+    @property
+    def bone_lines(self):
+        if self.bonetype == 'BODY_25':
+            return bone_lines_BODY_25
+        elif self.bonetype == 'COCO':
+            return bone_lines_COCO
+    @property
+    def joint_num(self):
+        if self.bonetype == 'BODY_25':
+            return 25
+        elif self.bonetype == 'COCO':
+            return 18
+
+class OpenPose(OpenPoseBase):
     def __init__(self, runenv='terminal', binpath=None, debug=False, bonetype='BODY_25'): 
-        if runenv == 'jupyter' and binpath is None:
+        super().__init__(bonetype, runenv, debug)
+
+        if self.runenv == 'jupyter' and binpath is None:
             logging.warning('binpath is not set. Jupyter cannot load openpose.bin location by default.')
         if binpath:
             os.environ['PATH'] += ':' + binpath
-        self.runenv = runenv
-        self.rootdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
         self.videoinfo = VideoInfo(videopath=None)
-        self.debug = debug
-        if self.debug:
-            logging.basicConfig()
-            logging.getLogger().setLevel(logging.DEBUG)
-        else:
-            logging.basicConfig()
-            logging.getLogger().setLevel(logging.INFO)
-            
-        self.bonetype = bonetype
-        
-        if self.bonetype not in bonetypes_list:
-            raise ValueError('Invalid bonetype. Must be {} but got {}'.format(bonetypes_list, self.bonetype))
-        if self.bonetype == 'COCO':
-            raise ValueError("Unsupported COCO")
         
     
     @property
@@ -87,19 +94,7 @@ class OpenPose:
             raise AssertionError('Call parse_video method first!')
         return self.videoinfo.frame_rate
     
-    @property
-    def bone_lines(self):
-        if self.bonetype == 'BODY_25':
-            return bone_lines_BODY_25
-        elif self.bonetype == 'COCO':
-            return bone_lines_COCO
-    @property
-    def joint_num(self):
-        if self.bonetype == 'BODY_25':
-            return 25
-        elif self.bonetype == 'COCO':
-            return 18
-
+    
     def create_bonevideo(self, Data, videoname, size=(600, 400)):
         fourcc = cv2.VideoWriter_fourcc(*'MPEG')
         w, h = size
@@ -123,23 +118,7 @@ class OpenPose:
 
         # debug
         if self.debug:
-            if self.runenv == 'terminal':
-                video = cv2.VideoCapture(out_videopath)
-                while video.isOpened():
-                    cv2.imshow('check', img)
-                    k = cv2.waitKey(10)
-                    if k == ord('q'):
-                        break
-                        #exit()
-                video.release()
-
-            elif self.runenv == 'jupyter':
-                import ipywidgets as wd
-                from IPython.display import Video, display
-                out = wd.Output(layout={'border': '1px solid black'})
-                with out:
-                    display(Video(out_videopath, embed=True, mimetype='mp4'))
-                
+            show_video(self.runenv, out_videopath)              
 
     
 
@@ -264,11 +243,11 @@ class OpenPose:
             PEOPLE_DICTS = jsondata
             
         #assert len(jsonfiles) == self.frame_num, "Invalid jsonfile numbers: must be {0}, but got {1}".format(self.frame_num, len(jsonfiles))
-        if len(jsonfiles) == 0:
+        if len(PEOPLE_DICTS) == 0:
             raise ValueError('No jsonfiles!')
-        if len(jsonfiles) != self.frame_num:
-            logging.warning("Empty frame was detected. Update frame number from {} to {}".format(self.frame_num, len(jsonfiles)))
-            self.videoinfo.frame_num = len(jsonfiles)
+        if len(PEOPLE_DICTS) != self.frame_num:
+            logging.warning("Empty frame was detected. Update frame number from {} to {}".format(self.frame_num, len(PEOPLE_DICTS)))
+            self.videoinfo.frame_num = len(PEOPLE_DICTS)
         
         
         Data = []
@@ -378,7 +357,7 @@ class OpenPose:
         print("select person you want to export")
 
         for videopath in videopaths:
-            print("select person you want to export in {0}".format(videoname))
+            print("select person you want to export in {0}".format(videopath))
             
             self.videoinfo.parse_from_dict(VIDEO_DATA[videopath])
             self.json2csv(jsondata=PEOPLE_DICT[videopath], autoselect=False)
@@ -432,3 +411,10 @@ class VideoInfo:
         ret['frame_num'] = self.frame_num
         ret['frame_rate'] = self.frame_rate
         return ret
+
+def check_bonetype(bonetype):
+    if bonetype not in bonetypes_list:
+        raise ValueError('Invalid bonetype. Must be {} but got {}'.format(bonetypes_list, bonetype))
+    if bonetype == 'COCO':
+        raise ValueError("Unsupported COCO")
+    return bonetype

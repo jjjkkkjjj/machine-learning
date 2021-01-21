@@ -1,3 +1,4 @@
+from mildetector.utils import show_video
 import numpy as np
 from scipy.interpolate import CubicSpline as cs
 from scipy.interpolate import interp1d
@@ -7,9 +8,8 @@ from scipy import fftpack
 import scipy.sparse as sp
 import itertools
 import os
+from .openpose import OpenPoseBase
 
-Lines = [[1, 0],[1, 2],[2, 3],[3, 4],[1, 5],[5, 6],[6, 7],[1, 8],[8, 9],[9, 10],[1, 11],[11, 12],
-         [12, 13], [0, 14],[14, 16],[0, 15],[15, 17]]
 
 def checkExistDir():
     if not os.path.exists('./bag/joint2img/motempl'):
@@ -20,14 +20,16 @@ def checkExistDir():
 
 
 
-class Data:
-    def __init__(self, videopath, width, height, frame_num, fps, time_rows, hand=None, dicimate=None):
+class Data(OpenPoseBase):
+    def __init__(self, videopath, width, height, frame_num, fps, time_rows, hand=None, dicimate=None, bonetype='BODY_25', runenv='terminal', debug=False):
+        super().__init__(bonetype, runenv, debug)
         self.videopath = videopath
         self.width = int(width)
         self.height = int(height)
         self.fps = float(fps)
         self.frame_num = int(frame_num)
         self.hand = hand
+
 
         self.joint_name = [time_rows[0][i] for i in range(1, len(time_rows[0])) if time_rows[0][i] != '']
         self.x = []
@@ -157,6 +159,15 @@ class Data:
                     newy.append(np.zeros(y.shape))
                     newc.append(np.zeros(c.shape))
                     continue
+                elif time.shape[0] == 1:
+                    _newx, _newy, _newc = np.zeros(x.shape), np.zeros(y.shape), np.zeros(c.shape)
+                    _newx[time] = x[time]
+                    _newy[time] = y[time]
+                    _newc[time] = c[time]
+                    newx.append(_newx)
+                    newy.append(_newy)
+                    newc.append(_newc)
+                    continue
 
                 spline_x = cs(time, x[time])
                 spline_y = cs(time, y[time])
@@ -179,6 +190,16 @@ class Data:
                     newy.append(np.zeros(y.shape))
                     newc.append(np.zeros(c.shape))
                     continue
+                elif time.shape[0] == 1:
+                    _newx, _newy, _newc = np.zeros(x.shape), np.zeros(y.shape), np.zeros(c.shape)
+                    _newx[time] = x[time]
+                    _newy[time] = y[time]
+                    _newc[time] = c[time]
+                    newx.append(_newx)
+                    newy.append(_newy)
+                    newc.append(_newc)
+                    continue
+
                 interp1d_x = interp1d(time, x[time], fill_value='extrapolate')
                 interp1d_y = interp1d(time, y[time], fill_value='extrapolate')
                 interp1d_c = interp1d(time, c[time], fill_value='extrapolate')
@@ -476,7 +497,7 @@ class Data:
         directiony = []
         length = []
         # range?
-        for line in Lines:
+        for line in self.bone_lines:
             x = (self.x[line[1]] - self.x[line[0]]) # [time]
             y = (self.y[line[1]] - self.y[line[0]]) # [time]
             l = np.sqrt(x*x + y*y)
@@ -574,7 +595,7 @@ class Data:
             plt.ylim([np.nanmax(y), np.nanmin(y)])
             plt.xlim([np.nanmin(x), np.nanmax(x)])
             plt.scatter(x[:, time], y[:, time])
-            for line in Lines:
+            for line in self.bone_lines:
                 plt.plot([x[line[0], time], x[line[1], time]],
                          [y[line[0], time], y[line[1], time]])
                 plt.title('frame {0}'.format(time))
@@ -605,7 +626,7 @@ class Data:
             #for x__, y__ in zip(x_, y_):
             #    if not np.isnan(x__):
             #        cv2.circle(img, (int(x__), int(y__)), 1, (255,255,255), -1)
-            for line in Lines:
+            for line in self.bone_lines:
                 if np.isnan(x_[line[0]]) or np.isnan(x_[line[1]]):
                     continue
                 else:
@@ -620,12 +641,14 @@ class Data:
 
         if save:
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            writer = cv2.VideoWriter('./bag/joint2img/{0}'.format(self.videopath.split('/')[-1]), fourcc, 30.0, (height, width))
+            savepath = os.path.join(self.rootdir, 'bag', 'joint2img', os.path.basename(self.videopath))
+            writer = cv2.VideoWriter(savepath, fourcc, 30.0, (height, width))
             for img in imgs:
                 writer.write(cv2.cvtColor(np.uint8(img), cv2.COLOR_GRAY2RGB))
 
             writer.release()
-            cv2.destroyAllWindows()
+            if self.debug:
+                show_video(self.runenv, savepath)
 
         return imgs
 
@@ -639,9 +662,8 @@ class Data:
 
         if save:
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            writer = cv2.VideoWriter('./bag/joint2img/motempl/{0}'.format(self.videopath.split('/')[-1]), fourcc,
-                                     30.0,
-                                     img_pre.shape)
+            savepath = os.path.join(self.rootdir, 'bag', 'joint2img', 'motempl', os.path.basename(self.videopath))
+            writer = cv2.VideoWriter(savepath, fourcc, 30.0, img_pre.shape)
             for index, img in enumerate(imgs[1:]):
                 color_diff = cv2.absdiff(img, img_pre)
 
@@ -659,12 +681,14 @@ class Data:
                     newimgs.append(hist)
                 img_pre = img.copy()
 
-                cv2.imshow('b', hist)
-                cv2.waitKey(1)
+                #cv2.imshow('b', hist)
+                #cv2.waitKey(1)
                 # print(hist_gray)
                 writer.write(cv2.cvtColor(hist, cv2.COLOR_GRAY2BGR))
 
             writer.release()
+            if self.debug:
+                show_video(self.runenv, savepath)
 
         else:
             reader = cv2.VideoCapture('./bag/joint2img/motempl/{0}'.format(self.videopath.split('/')[-1]))
@@ -679,7 +703,6 @@ class Data:
             reader.release()
 
         self.frame_num = len(newimgs)
-        cv2.destroyAllWindows()
         return newimgs
 
     def img2featurevector(self, imgs, dwidth=16, dheight=16, norm=False):
