@@ -7,7 +7,7 @@ import cv2
 from scipy import fftpack
 import scipy.sparse as sp
 import itertools
-import os
+import os, time
 from .openpose import OpenPoseBase
 
 
@@ -54,6 +54,7 @@ class Data(OpenPoseBase):
             self.y = self.y[:, ::dicimate]
             self.c = self.c[:, ::dicimate]
             self.frame_num = int(self.x.shape[1])
+        self.dicimate = dicimate
 
         for x in self.x:
             self.nan.append(np.where(np.isnan(x))[0])
@@ -611,11 +612,11 @@ class Data(OpenPoseBase):
         # fft
         yfft = fftpack.fft()
 
-    def joint2img(self, dicimate, width=64, height=64, save=False):
+    def joint2img(self, width=64, height=64, save=False):
         # convert x,y coordinates into pixcel(width x height)
         # [joint][time]
-        x = self.x[:,::dicimate]*width
-        y = self.y[:,::dicimate]*height
+        x = self.x * width
+        y = self.y * height
 
         # [time][joint]
         x = x.T.tolist()
@@ -652,54 +653,48 @@ class Data(OpenPoseBase):
 
         return imgs
 
-    def motion_history(self, imgs, dicimate, duration=0.1, save=False):
-        import time
+    def motion_history(self, imgs, duration=0.1, save=False):
         img_pre = imgs[0]
 
         history = np.zeros(img_pre.shape, dtype=np.float32)
 
         newimgs = []
-
+        videopath = os.path.join(self.rootdir, 'bag', 'joint2img', 'motempl', os.path.basename(self.videopath))
         if save:
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            savepath = os.path.join(self.rootdir, 'bag', 'joint2img', 'motempl', os.path.basename(self.videopath))
-            writer = cv2.VideoWriter(savepath, fourcc, 30.0, img_pre.shape)
+            writer = cv2.VideoWriter(videopath, fourcc, 30.0, img_pre.shape)
             for index, img in enumerate(imgs[1:]):
                 color_diff = cv2.absdiff(img, img_pre)
 
-                #timestamp = cv2.getTickCount() / cv2.getTickFrequency()
                 timestamp = time.clock()
-                #print(timestamp)
-                #4256.309012027
-
+                # note that this function set history as;
+                # if color_diff(i, j) != 0:
+                #   history(i,j) = ("now")timestamp
+                # else:
+                #   history(i,j) = 0 (history(i,j) < ("now")timestamp - duration)
+                #                = history(i,j) (else)
                 cv2.motempl.updateMotionHistory(color_diff, history, timestamp, duration)
 
                 hist = np.array(np.clip((history - (timestamp - duration)) / duration, 0, 1) * 255, np.uint8)
-
                 #hist = cv2.cvtColor(hist, cv2.COLOR_GRAY2BGR)
-                if index % dicimate == 0:
-                    newimgs.append(hist)
+                newimgs.append(hist)
                 img_pre = img.copy()
 
-                #cv2.imshow('b', hist)
-                #cv2.waitKey(1)
-                # print(hist_gray)
                 writer.write(cv2.cvtColor(hist, cv2.COLOR_GRAY2BGR))
 
             writer.release()
             if self.debug:
-                show_video(self.runenv, savepath)
+                show_video(self.runenv, videopath)
 
         else:
-            reader = cv2.VideoCapture('./bag/joint2img/motempl/{0}'.format(self.videopath.split('/')[-1]))
+            reader = cv2.VideoCapture(videopath)
             frame_num = int(reader.get(cv2.CAP_PROP_FRAME_COUNT))
             width = int(reader.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(reader.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
             for i in range(0, frame_num):
                 ret, img = reader.read()
-                if i % dicimate == 0 or i == frame_num - 1:
-                    newimgs.append(cv2.cvtColor(np.float32(img), cv2.COLOR_BGR2GRAY))
+                newimgs.append(cv2.cvtColor(np.float32(img), cv2.COLOR_BGR2GRAY))
             reader.release()
 
         self.frame_num = len(newimgs)
@@ -739,7 +734,7 @@ class Data(OpenPoseBase):
 
         return features
 
-    def combination(self, selectedJoinyNum, dicimate, sparse=False):
+    def combination(self, selectedJoinyNum, sparse=False):
         jointIds = [i for i in range(int(len(self.joint_name)/3))]
         jointComb = list(itertools.combinations(jointIds, selectedJoinyNum))
 
@@ -753,7 +748,7 @@ class Data(OpenPoseBase):
         data = x + y
 
         # instance order is (comb1(t=1),...,comb1(t=T),comb2(t=1),...)
-        timeIndices = [i for i in range(0, self.frame_num, dicimate)]
+        timeIndices = [i for i in range(self.frame_num)]
         if timeIndices[-1] != self.frame_num - 1:
             timeIndices.append(self.frame_num - 1)
         timeIndices = np.array(timeIndices)

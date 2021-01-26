@@ -122,7 +122,7 @@ class MILBase(OpenPoseBase):
 class MIL(MILBase):
     
 
-    def setData(self, positiveCsvFileName, negativeCsvFileName, saveMotionTmplate, dicimate, videoExtension='mp4', csvExtension='csv'):
+    def setData(self, positiveCsvFileName, negativeCsvFileName, dicimate, videoExtension='mp4', csvExtension='csv', **bagkwargs):
         print("reading and converting into feature vectors...")
         # read video info txt
         with open('2d-data/video_dir_info.txt', 'r') as f:
@@ -200,9 +200,9 @@ class MIL(MILBase):
                     continue
                 data = Data(videopath=videopath, width=header[1], height=header[3],
                                 frame_num=header[5], fps=header[7], time_rows=time_row, hand=hand,
-                                runenv=self.runenv, debug=self.debug)
+                                dicimate=dicimate, runenv=self.runenv, debug=self.debug)
                 pitch = Pitch(label, person, csvfilepath, data)
-                pitch.preprocess(self.method, mean=mean, dicimate=self.dicimate, saveMotionTmplate=True)
+                pitch.preprocess(self.method, mean=mean, **bagkwargs)
                 self.pitches.append(pitch)
 
         sys.stdout.write('\n')
