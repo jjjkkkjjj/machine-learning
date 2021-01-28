@@ -10,7 +10,8 @@ class Base:
             logging.basicConfig()
             logging.getLogger().setLevel(logging.INFO)
 
-        self.rootdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+        _basedirpath = os.path.dirname(os.path.abspath(__file__))
+        self.rootdir = os.path.abspath(os.path.join(_basedirpath, '..', '..', '..'))
         self.runenv = runenv
 
 

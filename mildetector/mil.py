@@ -1,11 +1,9 @@
 import glob
-from .data import Data
 import csv
 import numpy as np
 import sys
 import random
 import os
-from sklearn.metrics import accuracy_score
 from sklearn.externals import joblib
 from sklearn.model_selection import GridSearchCV, cross_validate
 from parameter_tune import tune
@@ -20,36 +18,19 @@ if platform.system() == 'Darwin':
     matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from vis_data import visualization
-from .openpose import OpenPoseBase
-from .pitch import Pitch
+from .objects.base import OpenPoseBase
+from .objects import Pitch, Data
+from .utils import check_and_create_dir, myScore
 
 def mkdir(resultSuperDirPath):
-    if not os.path.isdir('{0}'.format(resultSuperDirPath)):
-        os.makedirs('{0}'.format(resultSuperDirPath))
 
-    if not os.path.isdir('{0}/func_max_image'.format(resultSuperDirPath)):
-        os.makedirs('{0}/func_max_image'.format(resultSuperDirPath))
-
-    if not os.path.isdir('{0}/nonzero_image'.format(resultSuperDirPath)):
-        os.makedirs('{0}/nonzero_image'.format(resultSuperDirPath))
-
-    if not os.path.isdir('{0}/bag_video'.format(resultSuperDirPath)):
-        os.makedirs('{0}/bag_video'.format(resultSuperDirPath))
-
-    if not os.path.isdir('{0}/leave-one-out'.format(resultSuperDirPath)):
-        os.makedirs('{0}/leave-one-out'.format(resultSuperDirPath))
-
-    if not os.path.isdir('{0}/leave-one-person-out'.format(resultSuperDirPath)):
-        os.makedirs('{0}/leave-one-person-out'.format(resultSuperDirPath))
-
-    if not os.path.isdir('{0}/video'.format(resultSuperDirPath)):
-        os.makedirs('{0}/video'.format(resultSuperDirPath))
-
-def myScore(estimator, x, y):
-    yPred = np.sign(estimator.predict(x, instancePrediction=False))
-    acc = accuracy_score(y, yPred)
-    return acc
-
+    check_and_create_dir(resultSuperDirPath)
+    check_and_create_dir(resultSuperDirPath, 'func_max_image')
+    check_and_create_dir(resultSuperDirPath, 'nonzero_image')
+    check_and_create_dir(resultSuperDirPath, 'bag_video')
+    check_and_create_dir(resultSuperDirPath, 'leave-one-out')
+    check_and_create_dir(resultSuperDirPath, 'leave-one-person-out')
+    check_and_create_dir(resultSuperDirPath, 'video')
 
 class MILBase(OpenPoseBase):
     def __init__(self, method, experience, dirName, estimatorName, runenv, bonetype='BODY_25', debug=False):

@@ -1,4 +1,6 @@
-import cv2
+import cv2, os
+import numpy as np
+from sklearn.metrics import accuracy_score
 
 def show_video(runenv, path):
     if runenv == 'terminal':
@@ -20,3 +22,14 @@ def show_video(runenv, path):
         with out:
             display(Video(path, embed=True, mimetype='mp4'))
 
+
+def check_and_create_dir(*dirs):
+    path = os.path.join(*dirs)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    
+
+def myScore(estimator, x, y):
+    yPred = np.sign(estimator.predict(x, instancePrediction=False))
+    acc = accuracy_score(y, yPred)
+    return acc

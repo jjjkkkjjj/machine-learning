@@ -8,43 +8,10 @@ import cv2
 import numpy as np
 import shutil
 
-from .base import Base
+from .objects.base import OpenPoseBase
+from .objects import VideoInfo
 from .utils import show_video
 
-# see https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
-bone_lines_COCO = [
-    [1, 0],[1, 2],[2, 3],[3, 4],[1, 5],[5, 6],[6, 7],
-    [1, 8],[8, 9],[9, 10],
-    [1, 11],[11, 12],[12, 13],
-    [0, 14],[14, 16],[0, 15],[15, 17]
-]
-
-bone_lines_BODY_25 = [
-    [1, 0],[1, 2],[2, 3],[3, 4],[1, 5],[5, 6],[6, 7],[1, 8],
-    [8, 9],[9, 10],[10,11],[11,24],[11,22],[22,23],
-    [8, 12],[12, 13],[13, 14],[14, 21],[14, 19],[19,20],
-    [0, 15], [15, 17],[0, 16],[16, 18]
-]
-
-bonetypes_list = ['BODY_25', 'COCO']
-
-class OpenPoseBase(Base):
-    def __init__(self, bonetype, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.bonetype = check_bonetype(bonetype)
-
-    @property
-    def bone_lines(self):
-        if self.bonetype == 'BODY_25':
-            return bone_lines_BODY_25
-        elif self.bonetype == 'COCO':
-            return bone_lines_COCO
-    @property
-    def joint_num(self):
-        if self.bonetype == 'BODY_25':
-            return 25
-        elif self.bonetype == 'COCO':
-            return 18
 
 class OpenPose(OpenPoseBase):
     def __init__(self, runenv='terminal', binpath=None, debug=False, bonetype='BODY_25'): 
@@ -364,57 +331,4 @@ class OpenPose(OpenPoseBase):
             
             
                     
-class VideoInfo:
-    def __init__(self, videopath):
-        self.isParsed = False
-        
-        self.videopath = videopath
-        self.height = 0
-        self.width = 0
-        self.frame_num = 0
-        self.frame_rate = 0.0
-        
-        if videopath:
-            self.parse_video(videopath)
-    
-    @property
-    def videoname(self):
-        return os.path.basename(self.videopath)
-        
-    def parse_video(self, videopath):
-        # parse video information
-        self.videopath = videopath
-        video = cv2.VideoCapture(self.videopath)
-        self.height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.frame_num = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.frame_rate = video.get(cv2.CAP_PROP_FPS)
-        video.release()
-        
-        self.isParsed = True
-        
-    def parse_from_dict(self, video_dict):
-        # parse video information
-        self.videopath = video_dict['videoname']
-        self.height = video_dict['height']
-        self.width = video_dict['width']
-        self.frame_num = video_dict['frame_num']
-        self.frame_rate = video_dict['frame_rate'] 
-        
-        self.isParsed = True
-    
-    def export_dict(self):
-        ret = {}
-        ret['videoname'] = self.videoname
-        ret['height'] = self.height
-        ret['width'] = self.width
-        ret['frame_num'] = self.frame_num
-        ret['frame_rate'] = self.frame_rate
-        return ret
 
-def check_bonetype(bonetype):
-    if bonetype not in bonetypes_list:
-        raise ValueError('Invalid bonetype. Must be {} but got {}'.format(bonetypes_list, bonetype))
-    if bonetype == 'COCO':
-        raise ValueError("Unsupported COCO")
-    return bonetype

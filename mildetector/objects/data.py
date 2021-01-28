@@ -8,16 +8,12 @@ from scipy import fftpack
 import scipy.sparse as sp
 import itertools
 import os, time
-from .openpose import OpenPoseBase
-
+from .base import OpenPoseBase
+from ..utils import check_and_create_dir
 
 def checkExistDir():
-    if not os.path.exists('./bag/joint2img/motempl'):
-        os.makedirs('./bag/joint2img/motempl')
-
-    if not os.path.exists('./bag/norm'):
-        os.makedirs('./bag/norm')
-
+    check_and_create_dir('bag', 'joint2img', 'motempl')
+    check_and_create_dir('bag', 'norm')
 
 
 class Data(OpenPoseBase):
