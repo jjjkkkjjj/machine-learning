@@ -1,13 +1,15 @@
+from operator import le
 import numpy as np
 import random, os, copy, threading, glob, sys, cv2, platform
 from sklearn.externals import joblib
 from sklearn.model_selection import GridSearchCV, cross_validate
+from sklearn.metrics import confusion_matrix
 if platform.system() == 'Darwin':
     import matplotlib
     matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-from .utils import tune, myScore, visualization, frame_detector
+from .utils import tune, myScore, visualization, frame_detector, plot_confusion_matrix, labels2str, str2labels
 from .objects.base.mil import MILBase, mkdir
 
 class MILTrainMixin(MILBase):
@@ -42,13 +44,13 @@ class MILTrainMixin(MILBase):
         predictions, instance_labels = estimator.predict(bags, instancePrediction=True)
 
         with open('{0}/trainResult.txt'.format(resultSuperDirPath), 'w') as f:
-            print(labels)
-            print(np.sign(predictions))
+            print(labels2str(labels))
+            print(labels2str(np.sign(predictions)))
             print("Accuracy: {0}".format(np.average(labels == np.sign(predictions)) * 100))
             print(indices)
 
-            print('correct labels are \n{0}'.format(labels), file=f)
-            print('predicted labels are \n{0}'.format(np.sign(predictions)), file=f)
+            print('correct labels are \n{0}'.format(labels2str(labels)), file=f)
+            print('predicted labels are \n{0}'.format(labels2str(np.sign(predictions))), file=f)
             print("Accuracy: {0}".format(np.average(labels == np.sign(predictions)) * 100), file=f)
             print(self.info, file=f)
             print('train indices are \n{0}'.format(indices), file=f)
@@ -127,7 +129,14 @@ class MILTrainMixin(MILBase):
             print(self.info, file=f)
 
 class MILEvalMixin(MILBase):
-    def crossValidation(self, estimator, cv, resultSuperDirPath, threadNum=8):
+    def _resultSuperDirPath(self, paramDir):
+        return os.path.join(self.resultDir, paramDir)
+
+    def crossValidation(self, estimator, cv, paramDir, threadNum=8):
+        """
+        :param paramDir: str, e.g. g0.001/C50
+        """
+        resultSuperDirPath = self._resultSuperDirPath(paramDir)
         mkdir(resultSuperDirPath)
 
         score = cross_validate(estimator, self.bags, self.labels, scoring=myScore, cv=cv, n_jobs=threadNum)
@@ -137,7 +146,11 @@ class MILEvalMixin(MILBase):
 
         print(score)
 
-    def leaveOneOut(self, estimator, resultSuperDirPath, n_jobs=8, trainAcc=False):
+    def leaveOneOut(self, estimator, paramDir, n_jobs=8, trainAcc=False):
+        """
+        :param paramDir: str, e.g. g0.001/C50
+        """
+        resultSuperDirPath = self._resultSuperDirPath(paramDir)
         mkdir(resultSuperDirPath)
 
         predictedLabelsDict = {}
@@ -195,8 +208,8 @@ class MILEvalMixin(MILBase):
 
         acc = (np.average(predictedLabels == corresctLabels) * 100)
         with open(os.path.join(resultSuperDirPath, 'leave-one-out.txt'), 'w') as f:
-            print('correct labels are\n{0}'.format(corresctLabels), file=f)
-            print('predicted labels are\n{0}'.format(predictedLabels), file=f)
+            print('correct labels are\n{0}'.format(labels2str(corresctLabels)), file=f)
+            print('predicted labels are\n{0}'.format(labels2str(predictedLabels)), file=f)
             print('Accuracy: {0}'.format(acc))
             print('Accuracy: {0}'.format(acc, file=f))
             if trainAcc:
@@ -204,8 +217,12 @@ class MILEvalMixin(MILBase):
                 print('accuracies for train\n{0}'.format(trainAccuracies), file=f)
             print(self.info, file=f)
 
-    def read_loo(self, resultSuperDirPath, reload=False):
-        estimatorPaths = sorted(glob.glob(resultSuperDirPath + '/leave-one-out/*.pkl.cmp'))
+    def read_loo(self, paramDir, reload=False):
+        """
+        :param paramDir: str, e.g. g0.001/C50
+        """
+        resultSuperDirPath = self._resultSuperDirPath(paramDir)
+        estimatorPaths = sorted(glob.glob(os.path.join(resultSuperDirPath, 'leave-one-out', '*.pkl.cmp')))
         estimators = []
 
         p = 0
@@ -226,10 +243,14 @@ class MILEvalMixin(MILBase):
         return estimators
 
     # resultVis = {}
-    def leaveOnePersonOut(self, estimator, resultSuperDirPath, n_jobs=8, trainAcc=False, resultVis=None):
-        personList = list(set(self.persons))
-
+    def leaveOnePersonOut(self, estimator, paramDir, n_jobs=8, trainAcc=False, resultVis=None):
+        """
+        :param paramDir: str, e.g. g0.001/C50
+        """
+        resultSuperDirPath = self._resultSuperDirPath(paramDir)
         mkdir(resultSuperDirPath)
+
+        personList = list(set(self.persons))
 
         predictedLabelsDict = {}
         corresctLabelsDict = {}
@@ -307,8 +328,8 @@ class MILEvalMixin(MILBase):
 
         acc = (np.average(predictedLabels == corresctLabels) * 100)
         with open(os.path.join(resultSuperDirPath, 'leave-one-person-out.txt'), 'w') as f:
-            print('correct labels are\n{0}'.format(corresctLabels), file=f)
-            print('predicted labels are\n{0}'.format(predictedLabels), file=f)
+            print('correct labels are\n{0}'.format(labels2str(corresctLabels)), file=f)
+            print('predicted labels are\n{0}'.format(labels2str(predictedLabels)), file=f)
             print('Accuracy: {0}'.format(acc), file=f)
             print('Accuracy: {0}'.format(acc))
             if trainAcc:
@@ -324,10 +345,15 @@ class MILEvalMixin(MILBase):
             for visData in resultVisualization.values():
                 time_series_data.extend(visData['tsd'])
                 indices.extend(visData['indices'])
+            # go to MILVisMixin method
             self.visualization(time_series_data, indices, resultSuperDirPath=resultSuperDirPath)
 
-    def read_LOPO(self, resultSuperDirPath, reload=False):
-        estimatorPaths = sorted(glob.glob(resultSuperDirPath + '/leave-one-person-out/*.pkl.cmp'))
+    def read_LOPO(self, paramDir, reload=False):
+        """
+        :param paramDir: str, e.g. g0.001/C50
+        """
+        resultSuperDirPath = self._resultSuperDirPath(paramDir)
+        estimatorPaths = sorted(glob.glob(os.path.join(resultSuperDirPath, 'leave-one-person-out', '*.pkl.cmp')))
         estimators = []
 
         p = 0
@@ -353,7 +379,7 @@ class MILEvalMixin(MILBase):
         :param estimator: estimator or str. str represents estimator's filename(e.g. misvm.pkl.cmp).
         :param manualData: None or dict. dict's ket must be 'bags', 'labels', 'csvFilePaths'
         """
-        path = os.path.join(self.resultDir, paramDir)
+        path = self._resultSuperDirPath(paramDir)
         if isinstance(estimator, str):
             estimator = joblib.load(os.path.join(path, estimator))
 
@@ -377,8 +403,9 @@ class MILEvalMixin(MILBase):
         
         #print classifier.get_params()
         bag_predictions, instance_predictions = estimator.predict(bags, instancePrediction=True)
-        print(labels)
-        print(np.sign(bag_predictions))
+
+        print(labels2str(labels))
+        print(labels2str(np.sign(bag_predictions)))
         print("Accuracy: {0}".format(np.average(labels == np.sign(bag_predictions)) * 100))
 
         sys.setrecursionlimit(5000)
@@ -397,7 +424,7 @@ class MILEvalMixin(MILBase):
                 videopath = f.readline().split(',')[0]
 
                 videoname = videopath.split('/')[-1][:-4]
-                print("videoname: {0}".format(videoname))
+                print("\nvideoname: {0}".format(videoname))
             #print("csvfile: {0}".format(csvnamelist[bag_i]))
             print("prediction labels: {0}".format(bag_predictions[index]))
             print("right labels: {0}".format(labels[index]))
@@ -409,6 +436,33 @@ class MILEvalMixin(MILBase):
             #bag2video(csvnamelist[bag_i], nontimelist[bag_i], path)
             ini = fin
 
+    def parse_txt(self, paramDir, filename):
+        """
+        :param paramDir: str, e.g. g0.001/C50
+        :param filename: str
+        Note that parsed txt must be;
+        ======
+        
+            correct labels are 
+            [-1, -1, 1, -1, -1, -1, -1, 1, 1, -1, -1, -1, 1, 1, 1, 1, -1, -1, -1, 1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1]
+            predicted labels are 
+            [-1. -1.  1. -1.  1. -1. -1.  1.  1. -1. -1.  1.  1.  1.  1.  1. -1. -1.
+            1.  1. -1.  1. -1.  1.  1.  1.  1.  1.  1. -1.]
+            Accuracy: 90.0
+            ~~~~~
+
+        ======   
+        """
+        path = os.path.join(self._resultSuperDirPath(paramDir), filename)
+        with open(path, 'r') as f:
+            lines = f.readlines()
+            # true labels were written in 2 line
+            labels = str2labels(lines[1])
+            
+            # predicted labels were written in 4 line
+            predicted_labels = str2labels(lines[3])
+
+            return labels, predicted_labels
 
 class MILVisMixin(MILBase):
     def visualization(self, time_series_data, indices, resultSuperDirPath, mode='plot', frameSize=(800, 600)):
@@ -524,5 +578,28 @@ class MILVisMixin(MILBase):
         else:
             raise NameError('{0} is undefined method in this function'.format(self.method))
 
-    
-    
+    def confusion_matrix(self, predicted_labels, labels=None, title='Confusion matrix', target_names=['positive', 'negative'],
+                        cmap=None, normalize=True):
+        """
+        :param target_names: given classification classes such as [0, 1, 2]
+                the class names, for example: ['high', 'medium', 'low']
+
+        :param title:        the text to display at the top of the matrix
+
+        :param cmap:         the gradient of the values displayed from matplotlib.pyplot.cm
+                see http://matplotlib.org/examples/color/colormaps_reference.html
+                plt.get_cmap('jet') or plt.cm.Blues
+
+        :param normalize:    If False, plot the raw numbers
+                If True, plot the proportions
+        """
+        if labels is None:
+            labels = self.labels
+
+        if len(predicted_labels) != len(labels):
+            raise ValueError('Unbalanced length between labels:{} and predicted_labels:{}'.format(len(labels), len(predicted_labels)))
+        # create confusion matrix
+        cm = confusion_matrix(labels, predicted_labels)
+        
+        # plot
+        plot_confusion_matrix(self.runenv, cm, target_names, title, cmap, normalize)

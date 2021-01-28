@@ -33,3 +33,11 @@ def myScore(estimator, x, y):
     yPred = np.sign(estimator.predict(x, instancePrediction=False))
     acc = accuracy_score(y, yPred)
     return acc
+
+def labels2str(labels):
+    labels = np.array(labels).astype(int)
+    return np.array2string(labels, separator=',').replace('\n', '')
+
+def str2labels(labels_str):
+    removed_bracket = labels_str.replace('\n', '').replace('[', '').replace(']', '')
+    return np.fromstring(removed_bracket, dtype=int, sep=',')
