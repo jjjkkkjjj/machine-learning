@@ -181,7 +181,7 @@ def tsne(imgsDict, dirpath):
     sys.stdout.write('\rsaved t-sne to {0}\n'.format(dirpath))
     sys.stdout.flush()
 
-def plot_confusion_matrix(runenv, cm, target_names, title='Confusion matrix', cmap=None, normalize=True):
+def plot_confusion_matrix(runenv, cm, target_names, title='Confusion matrix', cmap=None, normalize=True, savepath=None):
     """
     given a sklearn confusion matrix (cm), make a nice plot
 
@@ -201,6 +201,8 @@ def plot_confusion_matrix(runenv, cm, target_names, title='Confusion matrix', cm
     normalize:    If False, plot the raw numbers
                 If True, plot the proportions
 
+    savepath: If None, not saved. If str, save plotted image.
+
     Usage
     -----
     plot_confusion_matrix(cm           = cm,                  # confusion matrix created by
@@ -218,8 +220,13 @@ def plot_confusion_matrix(runenv, cm, target_names, title='Confusion matrix', cm
     import numpy as np
     import itertools
 
-    accuracy = np.trace(cm) / float(np.sum(cm))
-    misclass = 1 - accuracy
+    tp, fn, fp, tn = cm.ravel()
+
+    #precision = np.trace(cm) / float(np.sum(cm))
+    precision = tp / float(tp + fp)
+    misclass = 1 - precision
+    recall = tp / float(tp + fn)
+    f1_score = 2 / (1/recall + 1/precision)
 
     if cmap is None:
         cmap = plt.get_cmap('Blues')
@@ -252,7 +259,14 @@ def plot_confusion_matrix(runenv, cm, target_names, title='Confusion matrix', cm
 
     plt.tight_layout()
     plt.ylabel('True label')
-    plt.xlabel('Predicted label\naccuracy={:0.4f}; misclass={:0.4f}'.format(accuracy, misclass))
+    plt.xlabel('Predicted label\nprecision={:0.4f}; recall={:0.4f}; f1={:0.4f}'.format(precision, recall, f1_score))
+
+    # call first!!
+    # https://stackoverflow.com/questions/9012487/matplotlib-pyplot-savefig-outputs-blank-image
+    plt.tight_layout()
+    if savepath:
+        plt.savefig(savepath)
+
     if runenv == 'terminal':
         plt.show()
     elif runenv == 'jupyter':

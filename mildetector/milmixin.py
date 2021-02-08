@@ -579,7 +579,7 @@ class MILVisMixin(MILBase):
             raise NameError('{0} is undefined method in this function'.format(self.method))
 
     def confusion_matrix(self, predicted_labels, labels=None, title='Confusion matrix', target_names=['positive', 'negative'],
-                        cmap=None, normalize=True):
+                        cmap=None, normalize=True, savepath=None):
         """
         :param target_names: given classification classes such as [0, 1, 2]
                 the class names, for example: ['high', 'medium', 'low']
@@ -592,6 +592,7 @@ class MILVisMixin(MILBase):
 
         :param normalize:    If False, plot the raw numbers
                 If True, plot the proportions
+        :param savepath: If None, not saved. If str, save plotted image.
         """
         if labels is None:
             labels = self.labels
@@ -602,4 +603,4 @@ class MILVisMixin(MILBase):
         cm = confusion_matrix(labels, predicted_labels)
         
         # plot
-        plot_confusion_matrix(self.runenv, cm, target_names, title, cmap, normalize)
+        plot_confusion_matrix(self.runenv, cm, target_names, title, cmap, normalize, savepath)
